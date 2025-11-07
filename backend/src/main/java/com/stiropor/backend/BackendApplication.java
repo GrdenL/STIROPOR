@@ -15,7 +15,7 @@ public class BackendApplication {
         SpringApplication.run(BackendApplication.class, args);
     }
 
-    @Bean
+    /*@Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
 
@@ -28,6 +28,6 @@ public class BackendApplication {
             }
 
         };
-    }
+    }*/
 
 }
