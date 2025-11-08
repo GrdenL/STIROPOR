@@ -26,7 +26,7 @@ CREATE TABLE Users
   googleId VARCHAR UNIQUE,
   userId INT NOT NULL,
   email VARCHAR NOT NULL UNIQUE,
-  password_hash VARCHAR NOT NULL,
+  password_hash VARCHAR,
   username VARCHAR NOT NULL UNIQUE,
   role VARCHAR NOT NULL,
   description VARCHAR,
@@ -116,7 +116,7 @@ CREATE TABLE Notifications
   FOREIGN KEY (userId) REFERENCES Users(userId)
 );
 
-CREATE TABLE whishesFor
+CREATE TABLE wishesFor
 (
   userId INT NOT NULL,
   gameId INT NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE isGenre
   FOREIGN KEY (genreId) REFERENCES Genres(genreId)
 );
 
-CREATE TABLE isIntrested
+CREATE TABLE isInterested
 (
   userId INT NOT NULL,
   genreId INT NOT NULL,
