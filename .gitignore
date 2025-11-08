@@ -1,0 +1,5 @@
+
+# env files
+frontend/.env
+frontend/.env.*
+!frontend/.env.example

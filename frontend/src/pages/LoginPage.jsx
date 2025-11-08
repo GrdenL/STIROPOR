@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "./App.css"
+import "./App.css";
+import { login, googleAuthUrl } from "../api";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -17,10 +18,22 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt:", formData);
-    alert("Login form submitted! Check the console.");
+    try {
+      const { email, password } = formData;
+      const res = await login(email, password);
+      if (!res.data) {
+        alert("Pogrešan email ili lozinka.");
+        return;
+      }
+      // uspjeh
+      console.log("Ulogiran:", res.data);
+      window.location.href = "/";
+    } catch (err) {
+      console.error(err);
+      alert("Login nije uspio.");
+    }
   };
 
   return (
@@ -157,8 +170,8 @@ const LoginPage = () => {
 
             {/* OAuth Buttons */}
             <div className="space-y-3">
-              <button
-                type="button"
+              <a
+                href={googleAuthUrl}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -180,7 +193,7 @@ const LoginPage = () => {
                   />
                 </svg>
                 Continue with Google
-              </button>
+              </a>
             </div>
           </div>
 

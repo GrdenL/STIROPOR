@@ -1,0 +1,6 @@
+{
+  "name": "gh-dev",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:GrdenL/STIROPOR:ref:refs/heads/dev",
+  "audiences": ["api://AzureADTokenExchange"]
+}

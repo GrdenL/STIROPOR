@@ -1,7 +1,19 @@
 import "./App.css";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { getUser } from "../api";
 
 const MainPage = () => {
+  useEffect(() => {
+    const email = new URLSearchParams(window.location.search).get("email");
+    if (email) {
+      getUser(email).then((res) => {
+        if (res.data) {
+          console.log("Google login user:", res.data);
+        }
+      });
+    }
+  }, []);
   return (
     <div className="bg-vintage-cream text-vintage-brown min-h-screen flex flex-col font-roboto">
       {/* Header */}

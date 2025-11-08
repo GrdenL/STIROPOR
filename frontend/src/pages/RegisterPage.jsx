@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import "./App.css"
+import "./App.css";
 import { Link } from "react-router-dom";
+import { register } from "../api";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -27,7 +28,7 @@ const RegisterPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     let hasError = false;
@@ -51,9 +52,29 @@ const RegisterPage = () => {
     setErrors(newErrors);
 
     if (!hasError) {
-      const submitData = { ...formData };
-      console.log("Registration attempt:", submitData);
-      alert("Registracijska forma poslana! Provjerite konzolu.");
+      try {
+        // mapiraj formu na backend User JSON
+        const payload = {
+          email: formData.email,
+          username: `${formData.firstName} ${formData.lastName}`.trim(),
+          passwordHash: formData.password, // backend trenutno očekuje polje passwordHash
+          description: "",
+          role: "USER",
+          townId: 1,
+          latitude: 0,
+          longitude: 0,
+        };
+
+        const res = await register(payload);
+        if (!res.data) {
+          alert("Korisnik već postoji ili registracija nije uspjela.");
+          return;
+        }
+        alert("Registracija uspješna! Možete se prijaviti.");
+      } catch (err) {
+        console.error(err);
+        alert("Greška pri registraciji.");
+      }
     }
   };
 
@@ -95,17 +116,9 @@ const RegisterPage = () => {
                       className="w-3 h-3 bg-[#D97706] rounded-full justify-self-start self-start"
                       style={{
                         justifySelf:
-                          col === 0
-                            ? "start"
-                            : col === 1
-                            ? "center"
-                            : "end",
+                          col === 0 ? "start" : col === 1 ? "center" : "end",
                         alignSelf:
-                          row === 0
-                            ? "start"
-                            : row === 1
-                            ? "center"
-                            : "end",
+                          row === 0 ? "start" : row === 1 ? "center" : "end",
                       }}
                     ></div>
                   )
