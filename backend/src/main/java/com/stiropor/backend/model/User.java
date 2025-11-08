@@ -48,16 +48,16 @@ public class User {
 
     }
 
-    public User(String email, String passwordHash, String username, String description, Double latitude,
+    public User(String email, String passwordHash, String username, Double latitude,
                 Double longitude) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.username = username;
         this.role = "USER";
-        this.description = description;
+        this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.townId = 0;
+        this.townId = 1;
     }
 
     public User(String googleId, String email, String username,
@@ -66,9 +66,10 @@ public class User {
         this.email = email;
         this.username = username;
         this.role = "USER";
+        this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.townId = 0;
+        this.townId = 1;
     }
 
 
