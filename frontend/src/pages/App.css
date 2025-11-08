@@ -1,0 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-vintage-brown: #3b2f2f;
+  --color-vintage-cream: #f9f5f0;
+  --color-vintage-accent: #d97706;
+  /* and other design tokens or variables */
+}
+
+@layer utilities {
+  .bg-vintage-brown {
+    background-color: var(--color-vintage-brown);
+  }
+  .text-vintage-accent {
+    color: var(--color-vintage-accent);
+  }
+}
