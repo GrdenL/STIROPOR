@@ -1,4 +1,4 @@
-import "./App.css"
+import "./App.css";
 import { Link } from "react-router-dom";
 
 const MainPage = () => {
@@ -44,10 +44,11 @@ const MainPage = () => {
           </div>
 
           <h1 className="text-2xl font-playfair font-bold mb-3">
-            Trade Board Games
+            Trade Board Games (DEV)
           </h1>
           <p className="max-w-2xl mx-auto text-sm font-roboto leading-relaxed mb-8">
-            Connect with collectors, trade games and build your ideal collection.
+            Connect with collectors, trade games and build your ideal
+            collection.
             <br />
             From Monopoly to Risk, find the games that you want to play.
           </p>
