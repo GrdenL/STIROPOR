@@ -43,5 +43,5 @@ jobs:
         with:
           app-name: "stiropor-api"
           slot-name: "production"
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_196BAB1D53AB45609D4A26E1BA14AC51 }}
+          publish-profile: ${{ secrets.AZURE_APP_SERVICE_PUBLISH_PROFILE }}
           package: "backend/build/libs/*.jar"
