@@ -2,7 +2,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: https://stiropor-api.azurewebsites.net/,
+  baseURL: "https://stiropor-api.azurewebsites.net",
   withCredentials: true,
 });
 
@@ -20,6 +20,4 @@ export const deleteUser = (email) =>
 
 export const getAllUsers = () => api.get("/getAllUsers");
 
-export const googleAuthUrl = `${
-  import.meta.env.VITE_API_URL
-}/oauth2/authorization/google`;
+export const googleAuthUrl = "https://stiropor-api.azurewebsites.net/oauth2/authorization/google";
