@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "./App.css";
 import { Link } from "react-router-dom";
 import { register } from "../api";
+import logo from "../assets/logo.png";
+
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -81,52 +83,44 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen bg-[#F9F5F0] flex flex-col font-roboto">
       {/* Header */}
+            {/* Header */}
       <header className="bg-[#3B2F2F] text-[#F9F5F0] py-4 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 border-2 border-[#D97706] rounded-sm flex items-center justify-center">
-              <div className="w-2 h-2 bg-[#D97706] rounded-full"></div>
-            </div>
-            <a href="index.html" className="text-lg font-bold font-playfair">
+          <Link
+            to="/"
+            className="flex items-center space-x-2 hover:text-[#D97706] transition"
+          >
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-8 w-8 object-contain rounded-sm"
+            />
+            <span className="text-lg font-playfair font-bold text-[#F9F5F0]">
               PlayTrade
-            </a>
-          </div>
+            </span>
+          </Link>
+
           <Link
             to="/login"
-            className="text-[#F9F5F0] hover:text-[#D97706] font-medium transition font-roboto"
+            className="inline-block bg-[#D97706] text-white font-medium font-roboto py-2 px-4 rounded-full transition duration-200 shadow-md hover:bg-[#B45309] hover:shadow-lg text-sm sm:text-base min-w-[120px] text-center"
           >
-            Already have an account? Log in
+            {/* Mobile text */}
+            <span className="sm:hidden">Log in</span>
+
+            {/* Desktop text */}
+            <span className="hidden sm:inline">Already have an account? Log in</span>
           </Link>
         </div>
       </header>
 
+
       {/* Main Content */}
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
-          {/* Logo */}
+          {/* Logo/Icon */}
           <div className="flex justify-center mb-8">
-            <div className="w-16 h-16 border-4 border-[#D97706] rounded-xl grid grid-cols-3 grid-rows-3 gap-1 p-2">
-              {[...Array(3)].map((_, row) =>
-                [...Array(3)].map((_, col) =>
-                  row === 1 && col === 1 ? (
-                    <div key={`${row}-${col}`}></div>
-                  ) : (
-                    <div
-                      key={`${row}-${col}`}
-                      className="w-3 h-3 bg-[#D97706] rounded-full justify-self-start self-start"
-                      style={{
-                        justifySelf:
-                          col === 0 ? "start" : col === 1 ? "center" : "end",
-                        alignSelf:
-                          row === 0 ? "start" : row === 1 ? "center" : "end",
-                      }}
-                    ></div>
-                  )
-                )
-              )}
-            </div>
+            <img src={logo} alt="Logo" className="h-30 w-30 object-contain " />
           </div>
-
           {/* Card */}
           <div className="bg-white rounded-xl shadow-lg border border-[#3B2F2F]/10 p-8">
             <h1 className="text-2xl font-bold text-center text-[#3B2F2F] mb-2 font-playfair">
@@ -354,12 +348,12 @@ const RegisterPage = () => {
             {/* Login Link */}
             <p className="text-center text-sm text-[#3B2F2F]/70 mt-6 font-roboto">
               Already have an account?{" "}
-              <a
-                href="login.html"
-                className="text-[#D97706] hover:text-amber-700 font-medium transition"
-              >
-                Login here
-              </a>
+             <Link
+               to="/login"
+               className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
+             >
+               Log in Here
+             </Link>
             </p>
           </div>
         </div>

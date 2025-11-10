@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./App.css";
 import { login, googleAuthUrl } from "../api";
+import logo from "../assets/logo.png";
+
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -41,19 +43,28 @@ const LoginPage = () => {
       {/* Header */}
       <header className="bg-[#3B2F2F] text-[#F9F5F0] py-4 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 border-2 border-[#D97706] rounded-sm flex items-center justify-center">
-              <div className="w-2 h-2 bg-[#D97706] rounded-full"></div>
-            </div>
-            <a href="index.html" className="text-lg font-bold font-playfair">
-              PlayTrade
-            </a>
-          </div>
           <Link
-            to="/register"
-            className="text-[#F9F5F0] hover:text-[#D97706] font-medium transition font-roboto"
+            to="/"
+            className="flex items-center space-x-2 hover:text-[#D97706] transition"
           >
-            Don’t have an account? Sign up
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-8 w-8 object-contain rounded-sm"
+            />
+            <span className="text-lg font-playfair font-bold text-[#F9F5F0]">
+              PlayTrade
+            </span>
+          </Link>
+          <Link
+            to="/login"
+            className="inline-block bg-[#D97706] text-white font-medium font-roboto py-2 px-4 rounded-full transition duration-200 shadow-md hover:bg-[#B45309] hover:shadow-lg text-sm sm:text-base min-w-[120px] text-center"
+          >
+            {/* Mobile text */}
+            <span className="sm:hidden">Sign up</span>
+
+            {/* Desktop text */}
+            <span className="hidden sm:inline">Don't have an account? Sign up</span>
           </Link>
         </div>
       </header>
@@ -63,17 +74,7 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           {/* Logo/Icon */}
           <div className="flex justify-center mb-8">
-            <div className="w-16 h-16 border-4 border-[#D97706] rounded-xl grid grid-cols-3 grid-rows-3 gap-1 p-2">
-              <div className="w-3 h-3 bg-[#D97706] rounded-full justify-self-start self-start"></div>
-              <div></div>
-              <div className="w-3 h-3 bg-[#D97706] rounded-full justify-self-end self-start"></div>
-              <div className="w-3 h-3 bg-[#D97706] rounded-full justify-self-start self-center"></div>
-              <div></div>
-              <div className="w-3 h-3 bg-[#D97706] rounded-full justify-self-end self-center"></div>
-              <div className="w-3 h-3 bg-[#D97706] rounded-full justify-self-start self-end"></div>
-              <div></div>
-              <div className="w-3 h-3 bg-[#D97706] rounded-full justify-self-end self-end"></div>
-            </div>
+            <img src={logo} alt="Logo" className="h-30 w-30 object-contain " />
           </div>
 
           {/* Card */}
@@ -199,13 +200,13 @@ const LoginPage = () => {
 
           {/* Register Link */}
           <p className="text-center text-sm text-[#3B2F2F]/70 mt-6 font-roboto">
-            Don’t have an account?{" "}
-            <a
-              href="register.html"
-              className="text-[#D97706] hover:text-amber-700 font-medium transition"
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
             >
-              Sign up here
-            </a>
+              Sign up Here
+            </Link>
           </p>
         </div>
       </main>
