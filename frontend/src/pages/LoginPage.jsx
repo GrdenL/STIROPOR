@@ -57,7 +57,7 @@ const LoginPage = () => {
             </span>
           </Link>
           <Link
-            to="/login"
+            to="/register"
             className="inline-block bg-[#D97706] text-white font-medium font-roboto py-2 px-4 rounded-full transition duration-200 shadow-md hover:bg-[#B45309] hover:shadow-lg text-sm sm:text-base min-w-[120px] text-center"
           >
             {/* Mobile text */}

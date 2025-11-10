@@ -319,8 +319,8 @@ const RegisterPage = () => {
 
             {/* OAuth */}
             <div className="space-y-3">
-              <button
-                type="button"
+              <a
+                href = {googleAuthUrl}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -342,7 +342,7 @@ const RegisterPage = () => {
                   />
                 </svg>
                 Register with Google
-              </button>
+              </a>
             </div>
 
             {/* Login Link */}
