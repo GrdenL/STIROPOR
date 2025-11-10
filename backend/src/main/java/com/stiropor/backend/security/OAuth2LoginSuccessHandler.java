@@ -3,6 +3,7 @@ package com.stiropor.backend.security;
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.service.UserService;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -14,13 +15,17 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import com.stiropor.backend.utils.JwtUtil;
+
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    public OAuth2LoginSuccessHandler(UserService userService) {
+    public OAuth2LoginSuccessHandler(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -56,8 +61,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
-        String safeEmail = email != null ? URLEncoder.encode(email, StandardCharsets.UTF_8) : "";
+        String userEmail = authentication.getName();
+        String token = jwtUtil.generateToken(userEmail);
 
-        response.sendRedirect("https://ststiroporwebpl.z36.web.core.windows.net?email=" + safeEmail);
+        Cookie cookie = new Cookie("jwt", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 10);
+        response.addCookie(cookie);
+
+        response.setContentType("application/json");
+        response.getWriter().write("{\"message\":\"Login successful\"}");
     }
 }
