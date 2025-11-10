@@ -6,6 +6,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
@@ -13,16 +14,16 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final Oauth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    public SecurityConfig(Oauth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+    public SecurityConfig(OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
+        http
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> {})
 
                 .authorizeHttpRequests(auth -> auth
@@ -37,14 +38,12 @@ public class SecurityConfig {
                         e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
 
-                .formLogin(form -> form.disable())
+                .formLogin(AbstractHttpConfigurer::disable)
 
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(authz -> authz.baseUri("/oauth2/authorization"))
-                        .redirectionEndpoint(redir -> redir.baseUri("/oauth2/callback/*"))
                         .successHandler(oAuth2LoginSuccessHandler)
-                )
+                );
 
-                .build();
+        return http.build();
     }
 }
