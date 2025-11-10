@@ -11,6 +11,8 @@ export const login = (email, password_hash) =>
 
 export const register = (user) => api.post("/register", user);
 
+export const getMe = (me) => api.get("/me", me);
+
 export const getUser = (email) => api.get("/getUser", { params: { email } });
 
 export const updateUser = (user) => api.put("/updateUser", user);

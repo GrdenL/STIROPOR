@@ -1,25 +1,28 @@
 import "./App.css";
 import { Link } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { getUser } from "../api";
+import { getMe } from "../api";
 import logo from "../assets/logo.png";
 
-
-
 const MainPage = () => {
+  const [user, setUser] = useState(null);
+
   useEffect(() => {
-    const email = new URLSearchParams(window.location.search).get("email");
-    if (email) {
-      getUser(email)
-        .then((res) => {
-          if (res.data) {
-            setUser(res.data); // save user info in state
-            console.log("Google login user:", res.data);
-          }
-        })
-        .catch((err) => console.error(err));
-    }
+    const fetchUser = async () => {
+      try {
+         console.log("Fetching user...");
+        const res = await getMe();
+        console.log("API response:", res.data);
+        setUser(res.data || null);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setUser(null);
+      }
+    };
+
+    fetchUser();
   }, []);
+
   return (
     <div className="bg-vintage-cream text-vintage-brown min-h-screen flex flex-col font-roboto">
       {/* Header */}

@@ -2,6 +2,8 @@ package com.stiropor.backend.controller;
 
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.service.UserService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +15,18 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        String email = authentication.getName();
+        return userService.findByEmail(email);
     }
 
 
