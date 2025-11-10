@@ -1,19 +1,23 @@
 import "./App.css";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { getUser } from "../api";
 import logo from "../assets/logo.png";
+
 
 
 const MainPage = () => {
   useEffect(() => {
     const email = new URLSearchParams(window.location.search).get("email");
     if (email) {
-      getUser(email).then((res) => {
-        if (res.data) {
-          console.log("Google login user:", res.data);
-        }
-      });
+      getUser(email)
+        .then((res) => {
+          if (res.data) {
+            setUser(res.data); // save user info in state
+            console.log("Google login user:", res.data);
+          }
+        })
+        .catch((err) => console.error(err));
     }
   }, []);
   return (
@@ -26,12 +30,18 @@ const MainPage = () => {
             <span className="text-lg font-playfair font-bold">PlayTrade</span>
           </div>
 
-          <Link
-            to="/login"
-            className="bg-[#D97706] hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-full transition"
-          >
-            Login / Sign Up
-          </Link>
+          {user ? (
+            <span className="bg-[#D97706] text-white font-medium py-2 px-6 rounded-full transition">
+              {user.email}
+            </span>
+          ) : (
+            <Link
+              to="/login"
+              className="bg-[#D97706] hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-full transition"
+            >
+              Login / Sign Up
+            </Link>
+          )}
         </div>
       </header>
 

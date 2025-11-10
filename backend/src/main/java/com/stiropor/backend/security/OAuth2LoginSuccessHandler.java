@@ -71,7 +71,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         cookie.setMaxAge(60 * 60 * 10);
         response.addCookie(cookie);
 
-        response.setContentType("application/json");
-        response.getWriter().write("{\"message\":\"Login successful\"}");
+        response.sendRedirect("https://ststiroporwebpl.z36.web.core.windows.net");
     }
 }
