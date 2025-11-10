@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 import { Link } from "react-router-dom";
-import { register } from "../api";
+import { register, googleAuthUrl } from "../api";
 import logo from "../assets/logo.png";
 
 
