@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "./App.css";
-import { login, googleAuthUrl } from "../api";
+import "../index.css";
+import { login, googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
-
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -40,35 +39,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-[#F9F5F0] flex flex-col font-roboto">
-      {/* Header */}
-      <header className="bg-[#3B2F2F] text-[#F9F5F0] py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link
-            to="/"
-            className="flex items-center space-x-2 hover:text-[#D97706] transition"
-          >
-            <img
-              src={logo}
-              alt="Logo"
-              className="h-8 w-8 object-contain rounded-sm"
-            />
-            <span className="text-lg font-playfair font-bold text-[#F9F5F0]">
-              PlayTrade
-            </span>
-          </Link>
-          <Link
-            to="/register"
-            className="inline-block bg-[#D97706] text-white font-medium font-roboto py-2 px-4 rounded-full transition duration-200 shadow-md hover:bg-[#B45309] hover:shadow-lg text-sm sm:text-base min-w-[120px] text-center"
-          >
-            {/* Mobile text */}
-            <span className="sm:hidden">Sign up</span>
-
-            {/* Desktop text */}
-            <span className="hidden sm:inline">Don't have an account? Sign up</span>
-          </Link>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
@@ -210,15 +180,6 @@ const LoginPage = () => {
           </p>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-[#3B2F2F] text-[#F9F5F0]/60 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm font-roboto">
-            © 2025 PlayTrade. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

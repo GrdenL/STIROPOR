@@ -1,57 +1,13 @@
-import "./App.css";
-import { Link } from "react-router-dom";
-import React, { useEffect, useState } from "react";
-import { getMe } from "../api";
+import React from "react";
 import logo from "../assets/logo.png";
+import "../index.css";
 
 const MainPage = () => {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-         console.log("Fetching user...");
-        const res = await getMe();
-        console.log("API response:", res.data);
-        setUser(res.data || null);
-      } catch (err) {
-        console.error("Error fetching user:", err);
-        setUser(null);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
   return (
     <div className="bg-vintage-cream text-vintage-brown min-h-screen flex flex-col font-roboto">
-      {/* Header */}
-      <header className="bg-vintage-brown text-vintage-cream py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <img src={logo} alt="Logo" className="h-8 w-8 object-contain rounded-sm" />
-            <span className="text-lg font-playfair font-bold">PlayTrade</span>
-          </div>
-
-          {user ? (
-            <span className="bg-[#D97706] text-white font-medium py-2 px-6 rounded-full transition">
-              {user.email}
-            </span>
-          ) : (
-            <Link
-              to="/login"
-              className="bg-[#D97706] hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-full transition"
-            >
-              Login / Sign Up
-            </Link>
-          )}
-        </div>
-      </header>
-
       {/* Hero Section */}
-      <section className="bg-vintage-brown text-vintage-cream py-24">
+      <section className="bg-vintage-brown text-vintage-cream py-24 flex-grow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Logo/Icon */}
           <div className="flex justify-center mb-8">
             <img src={logo} alt="Logo" className="h-30 w-30 object-contain " />
           </div>
@@ -65,6 +21,7 @@ const MainPage = () => {
             <br />
             From Monopoly to Risk, find the games that you want to play.
           </p>
+
           <a
             href="#"
             className="inline-flex items-center bg-vintage-accent hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition"
@@ -174,27 +131,8 @@ const MainPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Call to Action Footer */}
-      <section className="bg-vintage-brown text-vintage-cream py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-xl font-playfair font-bold mb-3">
-            Ready to Start Trading?
-          </h2>
-          <p className="max-w-xl mx-auto text-sm font-roboto mb-8">
-            Join our community of vintage board game enthusiasts today!
-          </p>
-          <Link
-            to="/login"
-            className="inline-flex items-center bg-vintage-accent hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition"
-          >
-           Get Started Now
-          </Link>
-        </div>
-      </section>
     </div>
   );
 };
-
 
 export default MainPage;

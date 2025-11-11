@@ -18,7 +18,6 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-
     public void deleteByEmail(String email) {
         userRepository.deleteByEmail(email);
     }
@@ -26,7 +25,6 @@ public class UserService {
     public User save(User user) {
         return userRepository.save(user);
     }
-
 
     public List<User> findAll() {
         return userRepository.findAll();

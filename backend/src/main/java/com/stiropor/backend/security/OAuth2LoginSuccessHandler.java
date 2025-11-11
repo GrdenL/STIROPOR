@@ -34,17 +34,20 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             HttpServletResponse response,
             Authentication authentication
     ) throws IOException, ServletException {
-
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
         String googleId = oAuth2User.getAttribute("sub");
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
+        System.out.println("OAuth2 email: " + email);
+
         if (email != null) {
             User user = userService.findByEmail(email);
+            System.out.println("User" + user.getEmail());
 
-            if (user == null) {
+            if (user.getEmail() == null) {
+                System.out.println("HEREEE");
                 user = new User();
                 user.setEmail(email);
                 user.setUsername(name != null ? name : "");
@@ -65,12 +68,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String token = jwtUtil.generateToken(userEmail);
 
         Cookie cookie = new Cookie("jwt", token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        //cookie.setHttpOnly(true);
+        //cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 10);
         response.addCookie(cookie);
 
-        response.sendRedirect("https://ststiroporwebpl.z36.web.core.windows.net");
+        response.sendRedirect("http://localhost:5173/");
     }
 }

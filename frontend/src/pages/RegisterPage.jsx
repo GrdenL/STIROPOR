@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import "./App.css";
+import "../index.css";
 import { Link } from "react-router-dom";
-import { register, googleAuthUrl } from "../api";
+import { register, googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
-
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -82,38 +81,6 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-[#F9F5F0] flex flex-col font-roboto">
-      {/* Header */}
-            {/* Header */}
-      <header className="bg-[#3B2F2F] text-[#F9F5F0] py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link
-            to="/"
-            className="flex items-center space-x-2 hover:text-[#D97706] transition"
-          >
-            <img
-              src={logo}
-              alt="Logo"
-              className="h-8 w-8 object-contain rounded-sm"
-            />
-            <span className="text-lg font-playfair font-bold text-[#F9F5F0]">
-              PlayTrade
-            </span>
-          </Link>
-
-          <Link
-            to="/login"
-            className="inline-block bg-[#D97706] text-white font-medium font-roboto py-2 px-4 rounded-full transition duration-200 shadow-md hover:bg-[#B45309] hover:shadow-lg text-sm sm:text-base min-w-[120px] text-center"
-          >
-            {/* Mobile text */}
-            <span className="sm:hidden">Log in</span>
-
-            {/* Desktop text */}
-            <span className="hidden sm:inline">Already have an account? Log in</span>
-          </Link>
-        </div>
-      </header>
-
-
       {/* Main Content */}
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
@@ -320,7 +287,7 @@ const RegisterPage = () => {
             {/* OAuth */}
             <div className="space-y-3">
               <a
-                href = {googleAuthUrl}
+                href={googleAuthUrl}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -348,25 +315,16 @@ const RegisterPage = () => {
             {/* Login Link */}
             <p className="text-center text-sm text-[#3B2F2F]/70 mt-6 font-roboto">
               Already have an account?{" "}
-             <Link
-               to="/login"
-               className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
-             >
-               Log in Here
-             </Link>
+              <Link
+                to="/login"
+                className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
+              >
+                Log in Here
+              </Link>
             </p>
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-[#3B2F2F] text-[#F9F5F0]/60 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm font-roboto">
-            © 2025 PlayTrade. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };
