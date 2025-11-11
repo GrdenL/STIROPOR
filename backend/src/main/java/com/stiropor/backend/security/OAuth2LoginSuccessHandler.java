@@ -47,7 +47,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             System.out.println("User" + user.getEmail());
 
             if (user.getEmail() == null) {
-                System.out.println("HEREEE");
                 user = new User();
                 user.setEmail(email);
                 user.setUsername(name != null ? name : "");
@@ -74,6 +73,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         cookie.setMaxAge(60 * 60 * 10);
         response.addCookie(cookie);
 
-        response.sendRedirect("http://localhost:5173/");
+        response.sendRedirect("https://ststiroporwebpl.z36.web.core.windows.net/");
     }
 }
