@@ -29,9 +29,7 @@ export const register = async (user) => {
 
 export const getCurrentUser = async () => {
   try {
-    console.log("Getting /me")
     const res = await api.get("/me");
-    console.log("/me gives" + res.data)
     return res.data;
   } catch (err) {
     console.error("Get current user failed:", err);
@@ -48,6 +46,16 @@ export const getAllUsers = async () => {
     return [];
   }
 };
+
+export const logoutUser = async () => {
+  try {
+    const res = await api.get("/logout");
+    return res.data;
+  } catch (err) {
+    console.error("Fetch users failed:", err);
+    return null;
+  }
+}
 
 export const googleAuthUrl = "https://stiropor-api.azurewebsites.net/oauth2/authorization/google";
 

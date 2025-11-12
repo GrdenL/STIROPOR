@@ -2,6 +2,9 @@ package com.stiropor.backend.controller;
 
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -55,8 +58,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    // SECURITY WARNING: Remove this endpoint in production!
-    // It exposes password verification logic and user data
+
     @PostMapping("/login")
     @Deprecated
     public ResponseEntity<?> getByEmailAndPassword(@RequestParam String email,
@@ -128,6 +130,30 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Registration failed");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            // Clear authentication and security context
+            SecurityContextHolder.clearContext();
+
+            if (request.getSession(false) != null) {
+                request.getSession(false).invalidate();
+            }
+
+            Cookie cookie = new Cookie("jwt", null);
+            //cookie.setHttpOnly(true);
+            //cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok("Logged out successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Logout failed");
         }
     }
 }
