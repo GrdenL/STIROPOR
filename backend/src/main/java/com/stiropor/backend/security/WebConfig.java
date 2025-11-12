@@ -12,12 +12,13 @@ public class WebConfig {
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry){
+            public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://ststiroporwebpl.z36.web.core.windows.net",
-                        "http://localhost:5173")
+                        .allowedOrigins("https://ststiroporwebpl.z36.web.core.windows.net")
+                        .allowCredentials(true)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowCredentials(true);
+                        .allowedHeaders("*")
+                        .exposedHeaders("Set-Cookie");
             }
         };
     }
