@@ -81,13 +81,9 @@ const Navbar = () => {
               aria-expanded={open}
               className="flex items-center space-x-2 bg-[#D97706] text-white font-medium py-2 px-4 rounded-full cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400"
             >
-              <Link
-                to="/profile"
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center space-x-2 no-underline text-white"
-              >
+              <div className="flex items-center space-x-2 no-underline text-white">
                 <User size={18} />
-              </Link>
+              </div>
               <span className="truncate max-w-xs">{user.email}</span>
             </button>
 

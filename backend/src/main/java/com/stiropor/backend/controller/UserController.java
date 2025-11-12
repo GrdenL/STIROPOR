@@ -144,10 +144,11 @@ public class UserController {
             }
 
             Cookie cookie = new Cookie("jwt", null);
-            //cookie.setHttpOnly(true);
-            //cookie.setSecure(true);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
             cookie.setPath("/");
-            cookie.setMaxAge(0);
+            cookie.setMaxAge(60 * 60 * 10);
+            cookie.setAttribute("SameSite", "None");
             response.addCookie(cookie);
 
             return ResponseEntity.ok("Logged out successfully");
