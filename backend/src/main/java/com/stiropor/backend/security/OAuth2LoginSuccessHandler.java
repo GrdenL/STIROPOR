@@ -40,8 +40,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-        System.out.println("OAuth2 email: " + email);
-
         if (email != null) {
             User user = userService.findByEmail(email);
 

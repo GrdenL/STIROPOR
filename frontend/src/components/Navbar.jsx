@@ -84,7 +84,7 @@ const Navbar = () => {
               <div className="flex items-center space-x-2 no-underline text-white">
                 <User size={18} />
               </div>
-              <span className="truncate max-w-xs">{user.email}</span>
+              <span className="truncate max-w-xs">{user.username}</span>
             </button>
 
             {/* Dropdown */}

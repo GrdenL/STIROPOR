@@ -27,7 +27,7 @@ CREATE TABLE Users
   userId INT NOT NULL,
   email VARCHAR NOT NULL UNIQUE,
   password_hash VARCHAR,
-  username VARCHAR NOT NULL UNIQUE,
+  username VARCHAR NOT NULL,
   role VARCHAR NOT NULL,
   description VARCHAR,
   latitude NUMERIC NOT NULL,
