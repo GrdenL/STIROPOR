@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -19,6 +20,9 @@ import com.stiropor.backend.utils.JwtUtil;
 
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+
+    @Value("${server.frontend}")
+    private String frontendUrl;
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
@@ -63,14 +67,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String userEmail = authentication.getName();
         String token = jwtUtil.generateToken(userEmail);
 
-        Cookie cookie = new Cookie("jwt", token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 10);
-        cookie.setAttribute("SameSite", "None");
-        response.addCookie(cookie);
-
-        response.sendRedirect("https://ststiroporwebpl.z36.web.core.windows.net/");
+        response.sendRedirect(frontendUrl + "?token=" + token);
     }
 }

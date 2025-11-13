@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "../index.css";
-import { login, googleAuthUrl } from "../utils/api";
+import { googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
 
 const LoginPage = () => {

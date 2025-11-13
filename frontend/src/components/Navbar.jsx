@@ -12,6 +12,11 @@ const Navbar = () => {
   const wrapperRef = useRef(null);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (token) {
+      sessionStorage.setItem("token", token);
+    }
     let mounted = true;
     const fetchUser = async () => {
       try {
