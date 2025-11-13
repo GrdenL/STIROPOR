@@ -64,9 +64,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
-        String userEmail = authentication.getName();
-        String token = jwtUtil.generateToken(userEmail);
-
+        String token = jwtUtil.generateToken(email);
         response.sendRedirect(frontendUrl + "?token=" + token);
     }
 }
