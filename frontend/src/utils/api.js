@@ -11,6 +11,7 @@ export const getCurrentUser = async () => {
     const res = await api.get("/me", {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
+    console.log(res.data)
 
     return res.data;
   } catch (err) {

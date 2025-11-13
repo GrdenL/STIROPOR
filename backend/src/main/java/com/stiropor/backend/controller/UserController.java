@@ -2,6 +2,7 @@ package com.stiropor.backend.controller;
 
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.service.UserService;
+import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,25 +27,23 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser() {
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            String jwt = null;
+            String email = null;
+            String username = null;
 
-            if (!authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("User not authenticated");
+            if (request.getHeader("Authorization") != null && request.getHeader("Authorization").length() > 7) {
+                jwt = request.getHeader("Authorization").substring(7);
             }
 
-            String email = oAuth2User.getAttribute("email");
-            User user = userService.findByEmail(email);
-
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("User not found");
+            if (jwt != null) {
+                JwtUtil jwtUtil = new JwtUtil();
+                email = jwtUtil.extractUsername(jwt);
             }
+            username = userService.findByEmail(email).getUsername();
 
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(username);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -1,4 +1,3 @@
-// Navbar.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, User } from "lucide-react";
@@ -7,45 +6,43 @@ import { getCurrentUser, logoutUser } from "../utils/api";
 import "../index.css";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // start as null
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
 
+  // Fetch user when component mounts
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
-    if (token) {
-      sessionStorage.setItem("token", token);
-    }
-    let mounted = true;
+    if (token) sessionStorage.setItem("token", token);
+
     const fetchUser = async () => {
       try {
         const data = await getCurrentUser();
-        if (mounted) setUser(data);
+        console.log("Fetched user:", data); // confirm API response
+        if (data) setUser(data); // triggers re-render
       } catch (err) {
         console.error("getCurrentUser error:", err);
       }
     };
+
     fetchUser();
-    return () => {
-      mounted = false;
-    };
   }, []);
 
-  // close when clicking outside or pressing Escape
+  // Close dropdown when clicking outside or pressing Escape
   useEffect(() => {
     const onDocClick = (e) => {
       if (!wrapperRef.current) return;
-      if (!wrapperRef.current.contains(e.target)) {
-        setOpen(false);
-      }
+      if (!wrapperRef.current.contains(e.target)) setOpen(false);
     };
     const onKey = (e) => {
       if (e.key === "Escape") setOpen(false);
     };
+
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("touchstart", onDocClick);
     document.addEventListener("keydown", onKey);
+
     return () => {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("touchstart", onDocClick);
@@ -55,10 +52,11 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await logoutUser?.();
+      await logoutUser();
     } catch (err) {
       console.error("logout error:", err);
     } finally {
+      sessionStorage.removeItem("token");
       setUser(null);
       setOpen(false);
     }
@@ -86,13 +84,10 @@ const Navbar = () => {
               aria-expanded={open}
               className="flex items-center space-x-2 bg-[#D97706] text-white font-medium py-2 px-4 rounded-full cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400"
             >
-              <div className="flex items-center space-x-2 no-underline text-white">
-                <User size={18} />
-              </div>
-              <span className="truncate max-w-xs">{user.username}</span>
+              <User size={18} />
+              <span className="truncate max-w-xs">{user}</span>
             </button>
 
-            {/* Dropdown */}
             {open && (
               <div
                 role="menu"
