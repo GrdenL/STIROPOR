@@ -21,7 +21,7 @@ Nastavnik: Vlado Sruk
     Leon Grden - DevOps&Documenatation
 
 Poveznica na GitHub projekta
-https://github.com/GrdenL/STIROPOR.git)
+https://github.com/GrdenL/STIROPOR.git
 
 Poveznica na stranicu
 https://ststiroporwebpl.z36.web.core.windows.net/
