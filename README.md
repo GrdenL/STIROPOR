@@ -21,13 +21,12 @@ Nastavnik: Vlado Sruk
     Leon Grden - DevOps&Documenatation
 
 Poveznica na GitHub projekta
-
 https://github.com/lhacek-progi/STIROPOR.git
-Poveznica na stranicu
 
+Poveznica na stranicu
 https://ststiroporwebpl.z36.web.core.windows.net/
-Napomena
+
+NAPOMENA
 
 U trenutnoj verziji aplikacije podržana je isključivo prijava i registracija putem Google računa (Google OAuth2).
-
-    Forma za prijavu/registraciju preko e-mail adrese i lozinke je djelomično implementirana, stoga ta opcija trenutno ne radi.
+Forma za prijavu/registraciju preko e-mail adrese i lozinke je djelomično implementirana, stoga ta opcija trenutno ne radi.
