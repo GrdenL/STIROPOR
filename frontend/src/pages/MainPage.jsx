@@ -13,7 +13,7 @@ const MainPage = () => {
           </div>
 
           <h1 className="text-2xl font-playfair font-bold mb-3">
-            Trade Board Games (DEV)
+            Trade Board Games (DEV) LOKALNO PROVJERA
           </h1>
           <p className="max-w-2xl mx-auto text-sm font-roboto leading-relaxed mb-8">
             Connect with collectors, trade games and build your ideal
