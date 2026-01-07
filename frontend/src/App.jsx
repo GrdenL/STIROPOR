@@ -2,20 +2,26 @@ import { Routes, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import GamesPage from "./pages/GamesPage";
+import GameDetailsPage from "./pages/GameDetailsPage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
+
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/games" element={<GamesPage />} />
+          <Route path="/games/:id" element={<GameDetailsPage />} />
         </Routes>
       </main>
+
       <Footer />
     </div>
   );
