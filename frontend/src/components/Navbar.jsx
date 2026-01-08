@@ -6,11 +6,10 @@ import { getCurrentUser, logoutUser } from "../utils/api";
 import "../index.css";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null); // start as null
+  const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
 
-  // Fetch user when component mounts
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
@@ -19,8 +18,7 @@ const Navbar = () => {
     const fetchUser = async () => {
       try {
         const data = await getCurrentUser();
-        console.log("Fetched user:", data); // confirm API response
-        if (data) setUser(data); // triggers re-render
+        if (data) setUser(data);
       } catch (err) {
         console.error("getCurrentUser error:", err);
       }
@@ -29,7 +27,6 @@ const Navbar = () => {
     fetchUser();
   }, []);
 
-  // Close dropdown when clicking outside or pressing Escape
   useEffect(() => {
     const onDocClick = (e) => {
       if (!wrapperRef.current) return;
@@ -56,7 +53,7 @@ const Navbar = () => {
     } catch (err) {
       console.error("logout error:", err);
     } finally {
-      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("jwt");
       setUser(null);
       setOpen(false);
     }
@@ -85,7 +82,9 @@ const Navbar = () => {
               className="flex items-center space-x-2 bg-[#D97706] text-white font-medium py-2 px-4 rounded-full cursor-pointer transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400"
             >
               <User size={18} />
-              <span className="truncate max-w-xs">{user}</span>
+              <span className="truncate max-w-xs">
+                {user.username ?? user.email ?? String(user)}
+              </span>
             </button>
 
             {open && (
@@ -128,4 +127,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
