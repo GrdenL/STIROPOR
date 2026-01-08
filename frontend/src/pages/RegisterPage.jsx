@@ -58,12 +58,8 @@ const RegisterPage = () => {
         const payload = {
           email: formData.email,
           username: `${formData.firstName} ${formData.lastName}`.trim(),
-          passwordHash: formData.password, // backend trenutno očekuje polje passwordHash
-          description: "",
-          role: "USER",
-          townId: 1,
-          latitude: 0,
-          longitude: 0,
+          password: formData.password,
+          location: formData.location,
         };
 
         const res = await register(payload);
