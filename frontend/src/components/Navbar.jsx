@@ -14,7 +14,7 @@ const Navbar = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
-    if (token) sessionStorage.setItem("token", token);
+    if (token) sessionStorage.setItem("jwt", token);
 
     const fetchUser = async () => {
       try {
@@ -128,3 +128,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
