@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>PlayTrade – Add / Edit Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "vintage-brown": "#3b2f2f",
+                        "vintage-cream": "#f9f5f0",
+                        "vintage-accent": "#d97706",
+                        "success-green": "#22c55e"
+                    },
+                    fontFamily: {
+                        playfair: ["Playfair Display", "serif"],
+                        roboto: ["Roboto", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+
+<body class="bg-vintage-cream text-vintage-brown font-roboto">
+
+    <!-- SUCCESS POPUP -->
+    <div id="successPopup"
+        class="fixed top-24 right-6 bg-success-green text-white px-6 py-4 rounded-xl shadow-2xl hidden z-[100]">
+        ✓ Listing created successfully!
+    </div>
+
+
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 w-full bg-vintage-brown text-vintage-cream py-4 shadow-lg z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="logo.png" alt="PlayTrade Logo" class="h-8 w-8 object-contain">
+                <span class="text-lg font-playfair font-bold">PlayTrade</span>
+            </a>
+            <a href="profile.html"
+                class="bg-vintage-accent hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-full transition">
+                My Profile
+            </a>
+        </div>
+    </header>
+
+    <!-- PAGE HEADER -->
+    <section class="bg-vintage-brown text-vintage-cream pt-32 pb-28">
+        <div class="max-w-5xl mx-auto text-center px-4 translate-y-8">
+            <!-- ICON -->
+            <div
+                class="w-20 h-20 mx-auto mb-6 rounded-full bg-vintage-accent/20 flex items-center justify-center text-4xl">
+                ✏️
+            </div>
+            <h1 id="pageTitle" class="text-4xl font-playfair font-bold mb-4">Add / Edit Game</h1>
+            <p class="text-base opacity-80 max-w-xl mx-auto">
+                Manage your listings
+            </p>
+        </div>
+    </section>
+
+    <!-- FORM & GAMES LIST - SIDE BY SIDE -->
+    <section class="py-20">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <!-- LEFT: FORM -->
+                <div>
+                    <form id="gameForm"
+                        class="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-8 sticky top-24">
+
+                        <input type="hidden" id="editIndex" />
+
+                        <!-- GAME NAME with Autocomplete -->
+                        <div class="mb-6 relative">
+                            <label class="block text-sm font-medium mb-2">Game name *</label>
+                            <input id="gameName" type="text"
+                                class="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
+                                placeholder="e.g. Catan" autocomplete="off" required />
+
+                            <!-- Dropdown -->
+                            <div id="autocompleteDropdown"
+                                class="absolute w-full bg-white border border-vintage-brown/20 rounded-xl mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-[60]">
+                            </div>
+                        </div>
+
+                        <!-- CONDITION -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-2">Condition *</label>
+                            <select id="condition"
+                                class="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
+                                required>
+                                <option value="">Select condition</option>
+                                <option>New</option>
+                                <option>Like New</option>
+                                <option>Good</option>
+                                <option>Acceptable</option>
+                                <option>Poor</option>
+                            </select>
+                        </div>
+
+                        <!-- IMAGES -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium mb-2">Images (max 3)</label>
+
+                            <!-- Drag & Drop Zone -->
+                            <div id="dropZone"
+                                class="border-2 border-dashed border-vintage-brown/30 rounded-xl p-8 text-center transition hover:border-vintage-accent hover:bg-vintage-accent/5 cursor-pointer">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-vintage-brown/40" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p class="text-sm text-vintage-brown/60 mb-2">
+                                    <span class="font-medium text-vintage-accent">Click to upload</span> or drag and
+                                    drop
+                                </p>
+                                <p class="text-xs text-vintage-brown/40">PNG, JPG up to 10MB (max 3 images)</p>
+                            </div>
+
+                            <input type="file" id="imageUpload" accept="image/*" multiple class="hidden" />
+
+                            <div id="imagePreview" class="flex gap-4 mt-4 flex-wrap"></div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="flex gap-3">
+                            <button type="submit" id="submitBtn"
+                                class="flex-1 bg-vintage-accent text-white py-3 rounded-full hover:bg-amber-700 transition">
+                                Create Listing
+                            </button>
+                            <button type="button" id="cancelBtn"
+                                class="px-6 bg-gray-300 text-vintage-brown py-3 rounded-full hover:bg-gray-400 transition hidden">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- RIGHT: GAMES LIST -->
+                <div>
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-playfair font-bold mb-2">My Games</h2>
+                        <p class="text-sm text-vintage-brown/60">Manage your game collection</p>
+                    </div>
+                    <div id="gameList" class="space-y-4"></div>
+
+                    <!-- Empty state -->
+                    <div id="emptyState" class="text-center py-16">
+                        <svg class="w-20 h-20 mx-auto mb-4 text-vintage-brown/20" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <p class="text-vintage-brown/60 font-medium text-lg mb-2">No games added yet</p>
+                        <p class="text-sm text-vintage-brown/40">Start by adding your first game using the form!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Mock data za igre
+        const mockGames = [
+            "Catan",
+            "Catan: Seafarers",
+            "Catan: Cities & Knights",
+            "Carcassonne",
+            "Cascadia",
+            "Ticket to Ride",
+            "Pandemic",
+            "Azul",
+            "Splendor",
+            "7 Wonders",
+            "Dominion",
+            "Agricola",
+            "Terraforming Mars",
+            "Scythe",
+            "Wingspan",
+            "Gloomhaven",
+            "Root",
+            "Brass: Birmingham",
+            "Spirit Island",
+            "Everdell"
+        ];
+
+        const form = document.getElementById("gameForm");
+        const gameList = document.getElementById("gameList");
+        const popup = document.getElementById("successPopup");
+        const pageTitle = document.getElementById("pageTitle");
+        const submitBtn = document.getElementById("submitBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const gameNameInput = document.getElementById("gameName");
+        const dropdown = document.getElementById("autocompleteDropdown");
+        const conditionSelect = document.getElementById("condition");
+
+        let games = [];
+        let selectedImages = [];
+        let imageProcessingCount = 0;
+
+        const upload = document.getElementById("imageUpload");
+        const preview = document.getElementById("imagePreview");
+        const dropZone = document.getElementById("dropZone");
+
+        // Load games from memory on page load
+        function loadGames() {
+            const savedGames = sessionStorage.getItem('playtrade_games');
+            if (savedGames) {
+                try {
+                    games = JSON.parse(savedGames);
+                    console.log('Loaded games:', games);
+                    renderGames();
+                } catch (e) {
+                    console.error('Error loading games:', e);
+                    games = [];
+                }
+            }
+        }
+
+        // Save games to memory
+        function saveGames() {
+            try {
+                sessionStorage.setItem('playtrade_games', JSON.stringify(games));
+                console.log('Saved games:', games);
+            } catch (e) {
+                console.error('Error saving games:', e);
+            }
+        }
+
+        // Click to upload
+        dropZone.addEventListener("click", () => {
+            upload.click();
+        });
+
+        // Image upload logic - multiple files
+        upload.addEventListener("change", (e) => {
+            handleFiles(e.target.files);
+            upload.value = "";
+        });
+
+        // Drag & Drop logic
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("border-vintage-accent", "bg-vintage-accent/10");
+        });
+
+        dropZone.addEventListener("dragleave", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-vintage-accent", "bg-vintage-accent/10");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("border-vintage-accent", "bg-vintage-accent/10");
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function handleFiles(files) {
+            const remainingSlots = 3 - selectedImages.length;
+
+            if (remainingSlots === 0) {
+                alert("Maximum 3 images allowed. Remove some images first.");
+                return;
+            }
+
+            const filesToAdd = Array.from(files).slice(0, remainingSlots);
+
+            // Validate file types
+            const validFiles = filesToAdd.filter(file => {
+                if (!file.type.startsWith("image/")) {
+                    alert(`${file.name} is not an image file`);
+                    return false;
+                }
+                return true;
+            });
+
+            // Convert files to base64 and add to selectedImages
+            imageProcessingCount = validFiles.length;
+            validFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedImages.push(e.target.result);
+                    imageProcessingCount--;
+                    if (imageProcessingCount === 0) {
+                        renderImages();
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (files.length > remainingSlots) {
+                alert(`Only ${remainingSlots} image(s) added. Maximum 3 images total.`);
+            }
+        }
+
+        function renderImages() {
+            preview.innerHTML = "";
+            selectedImages.forEach((imageData, index) => {
+                const wrapper = document.createElement("div");
+                wrapper.className = "relative";
+
+                const img = document.createElement("img");
+                img.src = imageData;
+                img.className = "w-24 h-24 object-cover rounded-xl border";
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.textContent = "×";
+                btn.className =
+                    "absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full hover:bg-red-600";
+                btn.onclick = () => {
+                    selectedImages.splice(index, 1);
+                    renderImages();
+                };
+
+                wrapper.append(img, btn);
+                preview.appendChild(wrapper);
+            });
+        }
+
+        // Autocomplete logic
+        gameNameInput.addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase().trim();
+
+            if (query.length === 0) {
+                dropdown.classList.add("hidden");
+                return;
+            }
+
+            const matches = mockGames.filter(game =>
+                game.toLowerCase().includes(query)
+            );
+
+            if (matches.length === 0) {
+                dropdown.classList.add("hidden");
+                return;
+            }
+
+            dropdown.innerHTML = "";
+            matches.forEach(game => {
+                const item = document.createElement("div");
+                item.className = "px-4 py-3 hover:bg-vintage-cream cursor-pointer transition";
+                item.textContent = game;
+                item.onclick = () => {
+                    gameNameInput.value = game;
+                    dropdown.classList.add("hidden");
+                };
+                dropdown.appendChild(item);
+            });
+
+            dropdown.classList.remove("hidden");
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", (e) => {
+            if (!gameNameInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add("hidden");
+            }
+        });
+
+        // Cancel button logic
+        cancelBtn.addEventListener("click", () => {
+            resetForm();
+        });
+
+        // Form submit
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+
+            const name = gameNameInput.value.trim();
+            const condition = conditionSelect.value;
+            const editIndex = document.getElementById("editIndex").value;
+
+            if (!name || !condition) {
+                alert("Please fill in all required fields");
+                return;
+            }
+
+            const data = {
+                name,
+                condition,
+                images: [...selectedImages],
+                dateAdded: new Date().toISOString()
+            };
+
+            if (editIndex === "") {
+                // Adding new game
+                games.push(data);
+                console.log('Added new game:', data);
+            } else {
+                // Editing existing game
+                games[parseInt(editIndex)] = data;
+                console.log('Updated game at index', editIndex, ':', data);
+            }
+
+            saveGames();
+            resetForm();
+            renderGames();
+            showPopup();
+        });
+
+        function resetForm() {
+            form.reset();
+            selectedImages = [];
+            renderImages();
+            document.getElementById("editIndex").value = "";
+            pageTitle.textContent = "Add Game";
+            submitBtn.textContent = "Create Listing";
+            cancelBtn.classList.add("hidden");
+            dropdown.classList.add("hidden");
+        }
+
+        function renderGames() {
+            const emptyState = document.getElementById("emptyState");
+
+            console.log('Rendering games. Total:', games.length);
+
+            if (games.length === 0) {
+                gameList.innerHTML = "";
+                emptyState.classList.remove("hidden");
+                return;
+            }
+
+            emptyState.classList.add("hidden");
+            gameList.innerHTML = "";
+
+            games.forEach((game, index) => {
+                const div = document.createElement("div");
+                div.className =
+                    "bg-white p-5 rounded-xl shadow flex justify-between items-center hover:shadow-lg transition";
+
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <strong class="block text-lg">${game.name}</strong>
+                        <span class="text-sm text-vintage-brown/70">${game.condition}</span>
+                        ${game.images && game.images.length > 0 ? `<span class="text-xs text-vintage-accent ml-2">(${game.images.length} image${game.images.length > 1 ? 's' : ''})</span>` : ''}
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="edit-btn text-vintage-accent font-medium hover:text-amber-700 px-3 py-2">Edit</button>
+                        <button type="button" class="delete-btn text-red-500 font-medium hover:text-red-700 px-3 py-2">Delete</button>
+                    </div>
+                `;
+
+                div.querySelector(".edit-btn").onclick = () => editGame(index);
+                div.querySelector(".delete-btn").onclick = () => deleteGame(index);
+                gameList.appendChild(div);
+            });
+        }
+
+        function editGame(index) {
+            const game = games[index];
+            gameNameInput.value = game.name;
+            conditionSelect.value = game.condition;
+            selectedImages = game.images ? [...game.images] : [];
+            renderImages();
+
+            document.getElementById("editIndex").value = index;
+            pageTitle.textContent = "Edit Game";
+            submitBtn.textContent = "Update Listing";
+            cancelBtn.classList.remove("hidden");
+
+            // NO scroll to top - user stays where they are
+        }
+
+        function deleteGame(index) {
+            if (confirm(`Are you sure you want to delete "${games[index].name}"?`)) {
+                games.splice(index, 1);
+                saveGames();
+                renderGames();
+
+                // If we were editing this game, reset the form
+                const editIndex = document.getElementById("editIndex").value;
+                if (editIndex == index) {
+                    resetForm();
+                }
+            }
+        }
+
+        function showPopup() {
+            popup.classList.remove("hidden");
+            setTimeout(() => popup.classList.add("hidden"), 2500);
+        }
+
+        // Load games when page loads
+        loadGames();
+    </script>
+
+</body>
+
+</html>
