@@ -53,7 +53,7 @@ const Navbar = () => {
     } catch (err) {
       console.error("logout error:", err);
     } finally {
-      sessionStorage.removeItem("jwt");
+      //sessionStorage.removeItem("jwt");
       setUser(null);
       setOpen(false);
     }
