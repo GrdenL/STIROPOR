@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>PlayTrade – Wishlist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet" />
+
+    <!-- Tailwind custom theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "vintage-brown": "#3b2f2f",
+                        "vintage-cream": "#f9f5f0",
+                        "vintage-accent": "#d97706",
+                        "success-green": "#22c55e"
+                    },
+                    fontFamily: {
+                        playfair: ["Playfair Display", "serif"],
+                        roboto: ["Roboto", "sans-serif"],
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+
+<body class="bg-vintage-cream text-vintage-brown font-roboto">
+
+    <!-- SUCCESS POPUP -->
+    <div id="successPopup"
+        class="fixed top-24 right-6 bg-success-green text-white px-6 py-4 rounded-xl shadow-2xl hidden z-[60]">
+        <span id="popupMessage">Game added to wishlist ✔</span>
+    </div>
+
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 w-full bg-vintage-brown text-vintage-cream py-4 shadow-lg z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="logo.png" alt="PlayTrade Logo" class="h-8 w-8 object-contain">
+                <span class="text-lg font-playfair font-bold">PlayTrade</span>
+            </a>
+            <a href="profile.html"
+                class="bg-vintage-accent hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-full transition">
+                My Profile
+            </a>
+        </div>
+    </header>
+
+    <!-- PAGE HEADER -->
+    <section class="bg-vintage-brown text-vintage-cream pt-32 pb-28">
+        <div class="max-w-5xl mx-auto text-center px-4 translate-y-8">
+            <!-- ICON -->
+            <div
+                class="w-20 h-20 mx-auto mb-6 rounded-full bg-vintage-accent/20 flex items-center justify-center text-4xl">
+                ❤️
+            </div>
+            <h1 class="text-4xl font-playfair font-bold mb-4">My Wishlist</h1>
+            <p class="text-base opacity-80 max-w-xl mx-auto">
+                Games you'd like to trade for in the future
+            </p>
+        </div>
+    </section>
+
+    <!-- ADD GAME SECTION -->
+    <section class="py-12 border-b border-vintage-brown/10">
+        <div class="max-w-2xl mx-auto px-4">
+            <div class="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6">
+                <h2 class="text-xl font-playfair font-bold mb-4">Add Game to Wishlist</h2>
+
+                <div class="relative">
+                    <input id="searchInput" type="text" placeholder="Search for a game (e.g. Catan)..."
+                        class="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
+                        autocomplete="off" />
+
+                    <!-- Autocomplete Dropdown -->
+                    <div id="searchDropdown"
+                        class="absolute w-full bg-white border border-vintage-brown/20 rounded-xl mt-1 shadow-lg max-h-64 overflow-y-auto hidden z-10">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BULK DELETE BAR (hidden by default) -->
+    <div id="bulkBar"
+        class="fixed bottom-0 left-0 w-full bg-vintage-brown text-white py-4 shadow-lg hidden z-40 transition-all">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+            <span id="selectedCount" class="font-medium">0 selected</span>
+            <div class="flex gap-3">
+                <button id="cancelSelect" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-full transition">
+                    Cancel
+                </button>
+                <button id="deleteSelected" class="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-full transition">
+                    Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WISHLIST GRID -->
+    <section class="py-20 pb-32">
+        <div class="max-w-6xl mx-auto px-4">
+
+            <!-- Action Bar (hidden when empty) -->
+            <div class="flex justify-between items-center mb-6 hidden" id="actionBar">
+                <h2 class="text-2xl font-playfair font-bold">
+                    <span id="gameCountText"></span>
+                </h2>
+                <button id="toggleSelectMode" class="text-vintage-accent font-medium hover:text-amber-700 transition">
+                    Select Multiple
+                </button>
+            </div>
+
+            <!-- Games Grid -->
+            <div id="wishlistGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Games will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-16">
+                <svg class="w-24 h-24 mx-auto mb-4 text-vintage-brown/20" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <p class="text-vintage-brown/40 text-lg">Your wishlist is empty</p>
+                <p class="text-sm text-vintage-brown/30 mt-1">Start adding games you'd like to trade for!</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Mock game database
+        const gameDatabase = [
+            { name: "Catan", players: "3–4 players", age: "Age 10+", emoji: "🎲" },
+            { name: "Catan: Seafarers", players: "3–4 players", age: "Age 10+", emoji: "⛵" },
+            { name: "Catan: Cities & Knights", players: "3–4 players", age: "Age 10+", emoji: "🏰" },
+            { name: "Ticket to Ride", players: "2–5 players", age: "Age 8+", emoji: "🚂" },
+            { name: "Pandemic", players: "2–4 players", age: "Age 8+", emoji: "🦠" },
+            { name: "Azul", players: "2–4 players", age: "Age 8+", emoji: "🎨" },
+            { name: "Splendor", players: "2–4 players", age: "Age 10+", emoji: "💎" },
+            { name: "7 Wonders", players: "2–7 players", age: "Age 10+", emoji: "🏛️" },
+            { name: "Dominion", players: "2–4 players", age: "Age 13+", emoji: "👑" },
+            { name: "Carcassonne", players: "2–5 players", age: "Age 7+", emoji: "🗺️" },
+            { name: "Terraforming Mars", players: "1–5 players", age: "Age 12+", emoji: "🔴" },
+            { name: "Scythe", players: "1–5 players", age: "Age 14+", emoji: "⚙️" },
+            { name: "Wingspan", players: "1–5 players", age: "Age 10+", emoji: "🦅" },
+            { name: "Gloomhaven", players: "1–4 players", age: "Age 14+", emoji: "⚔️" },
+            { name: "Root", players: "2–4 players", age: "Age 10+", emoji: "🦊" },
+        ];
+
+        let wishlist = [];
+        let selectMode = false;
+        let selectedGames = new Set();
+
+        const searchInput = document.getElementById("searchInput");
+        const searchDropdown = document.getElementById("searchDropdown");
+        const wishlistGrid = document.getElementById("wishlistGrid");
+        const emptyState = document.getElementById("emptyState");
+        const popup = document.getElementById("successPopup");
+        const popupMessage = document.getElementById("popupMessage");
+        const gameCountText = document.getElementById("gameCountText");
+        const actionBar = document.getElementById("actionBar");
+        const toggleSelectBtn = document.getElementById("toggleSelectMode");
+        const bulkBar = document.getElementById("bulkBar");
+        const selectedCount = document.getElementById("selectedCount");
+        const cancelSelect = document.getElementById("cancelSelect");
+        const deleteSelected = document.getElementById("deleteSelected");
+
+        // Search functionality
+        searchInput.addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase().trim();
+
+            if (query.length === 0) {
+                searchDropdown.classList.add("hidden");
+                return;
+            }
+
+            const matches = gameDatabase.filter(game =>
+                game.name.toLowerCase().includes(query) &&
+                !wishlist.find(w => w.name === game.name)
+            );
+
+            if (matches.length === 0) {
+                searchDropdown.innerHTML = '<div class="px-4 py-3 text-vintage-brown/40">No games found</div>';
+                searchDropdown.classList.remove("hidden");
+                return;
+            }
+
+            searchDropdown.innerHTML = "";
+            matches.forEach(game => {
+                const item = document.createElement("div");
+                item.className = "px-4 py-3 hover:bg-vintage-cream cursor-pointer transition flex items-center gap-3";
+                item.innerHTML = `
+                    <span class="text-2xl">${game.emoji}</span>
+                    <div>
+                        <div class="font-medium">${game.name}</div>
+                        <div class="text-sm text-vintage-brown/60">${game.players} · ${game.age}</div>
+                    </div>
+                `;
+                item.onclick = () => addToWishlist(game);
+                searchDropdown.appendChild(item);
+            });
+
+            searchDropdown.classList.remove("hidden");
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", (e) => {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.classList.add("hidden");
+            }
+        });
+
+        // Add to wishlist
+        function addToWishlist(game) {
+            if (wishlist.find(w => w.name === game.name)) {
+                showPopup("Game already in wishlist!", "bg-amber-500");
+                return;
+            }
+
+            wishlist.push({ ...game, id: Date.now() });
+            searchInput.value = "";
+            searchDropdown.classList.add("hidden");
+            renderWishlist();
+            showPopup("Game added to wishlist ✔", "bg-success-green");
+        }
+
+        // Render wishlist
+        function renderWishlist() {
+            const count = wishlist.length;
+
+            if (count === 0) {
+                wishlistGrid.innerHTML = "";
+                emptyState.classList.remove("hidden");
+                actionBar.classList.add("hidden");
+                exitSelectMode();
+                return;
+            }
+
+            // Show action bar with count
+            emptyState.classList.add("hidden");
+            actionBar.classList.remove("hidden");
+            gameCountText.textContent = count === 1 ? "1 Game" : `${count} Games`;
+            wishlistGrid.innerHTML = "";
+
+            wishlist.forEach(game => {
+                const card = document.createElement("div");
+                card.className = `bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 transition relative ${selectMode ? 'cursor-pointer' : 'hover:-translate-y-2 hover:shadow-lg cursor-default'
+                    } ${selectedGames.has(game.id) ? 'ring-2 ring-vintage-accent' : ''}`;
+
+                card.innerHTML = `
+                    ${selectMode ? `
+                        <div class="absolute top-3 right-3">
+                            <input type="checkbox" ${selectedGames.has(game.id) ? 'checked' : ''} 
+                                class="w-5 h-5 accent-vintage-accent pointer-events-none">
+                        </div>
+                    ` : ''}
+                    <div class="h-40 bg-vintage-accent/20 rounded-xl mb-4 flex items-center justify-center text-4xl">
+                        ${game.emoji}
+                    </div>
+                    <h3 class="text-xl font-medium mb-1">${game.name}</h3>
+                    <p class="text-sm opacity-80">${game.players} · ${game.age}</p>
+                    ${!selectMode ? `
+                        <button class="delete-btn mt-4 text-red-500 text-sm font-medium hover:text-red-700">
+                            Remove
+                        </button>
+                    ` : ''}
+                `;
+
+                if (selectMode) {
+                    card.onclick = () => toggleSelection(game.id);
+                } else {
+                    const deleteBtn = card.querySelector(".delete-btn");
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        removeFromWishlist(game.id);
+                    };
+                }
+
+                wishlistGrid.appendChild(card);
+            });
+        }
+
+        // Remove single game
+        function removeFromWishlist(id) {
+            if (confirm("Remove this game from your wishlist?")) {
+                wishlist = wishlist.filter(g => g.id !== id);
+                renderWishlist();
+                showPopup("Game removed", "bg-red-500");
+            }
+        }
+
+        // Select mode toggle
+        toggleSelectBtn.addEventListener("click", () => {
+            selectMode = !selectMode;
+            toggleSelectBtn.textContent = selectMode ? "Cancel Selection" : "Select Multiple";
+
+            if (selectMode) {
+                bulkBar.classList.remove("hidden");
+            } else {
+                exitSelectMode();
+            }
+
+            renderWishlist();
+        });
+
+        // Toggle selection
+        function toggleSelection(id) {
+            if (selectedGames.has(id)) {
+                selectedGames.delete(id);
+            } else {
+                selectedGames.add(id);
+            }
+            updateSelectedCount();
+            renderWishlist();
+        }
+
+        // Update selected count
+        function updateSelectedCount() {
+            selectedCount.textContent = `${selectedGames.size} selected`;
+        }
+
+        // Cancel selection
+        cancelSelect.addEventListener("click", () => {
+            exitSelectMode();
+            renderWishlist();
+        });
+
+        // Delete selected games
+        deleteSelected.addEventListener("click", () => {
+            if (selectedGames.size === 0) return;
+
+            if (confirm(`Delete ${selectedGames.size} game(s) from wishlist?`)) {
+                wishlist = wishlist.filter(g => !selectedGames.has(g.id));
+                showPopup(`${selectedGames.size} game(s) removed`, "bg-red-500");
+                exitSelectMode();
+                renderWishlist();
+            }
+        });
+
+        // Exit select mode
+        function exitSelectMode() {
+            selectMode = false;
+            selectedGames.clear();
+            bulkBar.classList.add("hidden");
+            toggleSelectBtn.textContent = "Select Multiple";
+        }
+
+        // Show popup
+        function showPopup(message, colorClass = "bg-success-green") {
+            popupMessage.textContent = message;
+            popup.className = `fixed top-24 right-6 ${colorClass} text-white px-6 py-4 rounded-xl shadow-2xl z-[60]`;
+            popup.classList.remove("hidden");
+            setTimeout(() => popup.classList.add("hidden"), 2500);
+        }
+
+        // Initialize
+        renderWishlist();
+    </script>
+
+</body>
+
+</html>

@@ -1,6 +1,8 @@
 package com.stiropor.backend.controller;
 
 import com.stiropor.backend.model.User;
+import com.stiropor.backend.service.BCryptService;
+import com.stiropor.backend.service.NominatimService;
 import com.stiropor.backend.service.UserService;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
@@ -18,33 +20,41 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
+    private final NominatimService nominatimService;
+    private final BCryptService bCryptService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtUtil jwtUtil, NominatimService nominatimService, BCryptService bCryptService) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
+        this.nominatimService = nominatimService;
+        this.bCryptService = bCryptService;
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
             String jwt = null;
-            String email = null;
-            String username = null;
 
-            if (request.getHeader("Authorization") != null && request.getHeader("Authorization").length() > 7) {
-                jwt = request.getHeader("Authorization").substring(7);
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if (cookie.getName().equals("jwt")) {
+                        jwt = cookie.getValue();
+                    }
+                }
+            }
+            if (jwt == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
 
-            if (jwt != null) {
-                JwtUtil jwtUtil = new JwtUtil();
-                email = jwtUtil.extractUsername(jwt);
-            }
-            username = userService.findByEmail(email).getUsername();
 
-            return ResponseEntity.ok(username);
+            String email = jwtUtil.extractUsername(jwt);
+            User user =  userService.findByEmail(email);
+
+            return ResponseEntity.ok(user);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -62,10 +72,19 @@ public class UserController {
     @PostMapping("/login")
     @Deprecated
     public ResponseEntity<?> getByEmailAndPassword(@RequestParam String email,
-                                                   @RequestParam String password_hash) {
+                                                   @RequestParam String password,
+                                                   HttpServletResponse response) {
         try {
             User user = userService.findByEmail(email);
-            if (user != null && password_hash.equals(user.getPasswordHash())) {
+            if (user != null && bCryptService.checkPassword(password, user.getPasswordHash())) {
+                String token =  jwtUtil.generateToken(user.getEmail());
+                Cookie cookie = new Cookie("jwt", token);
+                cookie.setMaxAge(60 * 60 * 24);
+                cookie.setPath("/");
+                cookie.setHttpOnly(true);
+                cookie.setSecure(true);
+                cookie.setAttribute("SameSite", "None");
+                response.addCookie(cookie);
                 return ResponseEntity.ok(user);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -117,14 +136,25 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestParam String email, @RequestParam String username, @RequestParam String password,  @RequestParam String location) {
         try {
-            if (userService.findByEmail(user.getEmail()) != null) {
+            if (userService.findByEmail(email) != null) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("User with this email already exists");
             }
 
-            User savedUser = userService.save(user);
+            //NominatimService.LocationResponse result = nominatimService.geocode(location);
+
+            double lat = 0.0;
+            double lon = 0.0;
+
+            //if(result != null) {
+            //    lat = Double.parseDouble(result.lat);
+            //    lon = Double.parseDouble(result.lon);
+            //}
+            //mozemo dodati da ne radi ako je neispravna lokacija kasnije
+
+            User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, lat, lon));
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
 
         } catch (Exception e) {
