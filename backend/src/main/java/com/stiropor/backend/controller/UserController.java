@@ -47,6 +47,12 @@ public class UserController {
                 }
             }
             if (jwt == null) {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+                    jwt = authHeader.substring(7);
+                }
+            }
+            if (jwt == null) {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
 

@@ -1,8 +1,16 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",                                               //OBAVEZNO VRATITI PRIJE PUSHA NA MAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LUAK CITAJ
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080", //OBAVEZNO VRATITI PRIJE PUSHA NA MAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LUAK CITAJ
   withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem("jwt");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const getCurrentUser = async () => {
