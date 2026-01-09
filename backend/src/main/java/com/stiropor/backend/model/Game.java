@@ -1,6 +1,8 @@
 package com.stiropor.backend.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "games")
@@ -32,6 +34,18 @@ public class Game{
 	@ManyToOne
 	@JoinColumn(name = "mediaId", nullable = false)
 	private Media media;
+
+	
+	@ManyToMany
+	@JoinTable(
+		name = "isGenre",
+		joinColumns = @JoinColumn(name = "gameId"),
+		inverseJoinColumns = @JoinColumn(name = "genreId")
+	)
+	private List<Genre> genres = new ArrayList<>();
+
+	@ManyToMany(mappedBy = "wishlist")
+	private List<User> wishedByUsers = new ArrayList<>();
 
 	public Game() {
 
@@ -112,6 +126,22 @@ public class Game{
 
 	public void setMedia(Media media) {
 		this.media = media;
+	}
+
+	public List<Genre> getGenres() {
+		return genres;
+	}
+
+	public void setGenres(List<Genre> genres) {
+		this.genres = genres;
+	}
+
+	public List<User> getWishedByUsers() {
+		return wishedByUsers;
+	}
+
+	public void setWishedByUsers(List<User> wishedByUsers) {
+		this.wishedByUsers = wishedByUsers;
 	}
 
 

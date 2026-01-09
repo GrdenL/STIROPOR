@@ -4,6 +4,8 @@ package com.stiropor.backend.model;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -41,15 +43,32 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
 
-    @Column(name = "townid", nullable = false)
-    private Integer townId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "townid", nullable = false)
+    private Town town;
+
+    @ManyToMany
+    @JoinTable(
+	name = "wishesFor",
+	joinColumns = @JoinColumn(name = "userId"),
+	inverseJoinColumns = @JoinColumn(name = "gameId")
+    )
+    private List<Game> wishlist = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+	name = "isInterested",
+	joinColumns = @JoinColumn(name = "userId"),
+	inverseJoinColumns = @JoinColumn(name = "genreId")
+    )
+    private List<Genre> interestedGenres = new ArrayList<>();
 
     public User() {
 
     }
 
     public User(String email, String passwordHash, String username, Double latitude,
-                Double longitude) {
+                Double longitude, Town town) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.username = username;
@@ -57,11 +76,11 @@ public class User {
         this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.townId = 1;
+        this.town = town;
     }
 
     public User(String googleId, String email, String username,
-                Double latitude, Double longitude, Integer townId) {
+                Double latitude, Double longitude, Town town) {
         this.googleId = googleId;
         this.email = email;
         this.username = username;
@@ -69,7 +88,7 @@ public class User {
         this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.townId = 1;
+        this.town = town;
     }
 
 
@@ -158,11 +177,30 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public Integer getTownId() {
-        return townId;
+    public Town getTown() {
+        return town;
     }
 
-    public void setTownId(Integer townId) {
-        this.townId = townId;
+    public void setTown(Town town) {
+        this.town = town;
+    }
+
+
+
+
+    public List<Game> getWishlist() {
+	return wishlist;
+    }
+
+    public void setWishlist(List<Game> wishlist) {
+	this.wishlist = wishlist;
+    }
+
+    public List<Genre> getInterestedGenres() {
+	return interestedGenres;
+    }
+
+    public void setInterestedGenres(List<Genre> interestedGenres) {
+	this.interestedGenres = interestedGenres;
     }
 }
