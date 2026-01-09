@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -90,7 +91,7 @@ public class UserController {
                 cookie.setSecure(false);                                 //ZAMIJENI NA TRUE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 cookie.setAttribute("SameSite", "Lax");          //ZAMIJENI NA NONE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 response.addCookie(cookie);
-                return ResponseEntity.ok(user);
+                return ResponseEntity.ok(Map.of("user", user, "token", token));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid credentials");
