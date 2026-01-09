@@ -22,6 +22,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      sessionStorage.removeItem("jwt");
       const { email, password } = formData;
       const res = await login(email, password);
       if (!res.data) {
