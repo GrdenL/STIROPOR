@@ -1,35 +1,12 @@
-
-
 export const mockListings = [
-
+  // ===== CATAN (gameId: 1) – 12 LISTINGA =====
   {
     listingId: 1,
     condition: "Very good",
     isActive: true,
     created_at: "2025-01-10",
-    description: "Played only a few times, all components complete.",
-
-    media: {
-      href: "/images/listings/catan-listing.jpg",
-    },
-
-    game: {
-      gameId: 1,
-      gameName: "Catan",
-      publisher: "Kosmos",
-      yearPublished: 1995,
-      maxMinPlayers: "3–4",
-      avgPlayTime: 90,
-      complexity: 2,
-      media: {
-        href: "/images/games/catan.jpg",
-      },
-      genres: [
-        { genreId: 1, genreName: "Strategy" },
-        { genreId: 2, genreName: "Family" },
-      ],
-    },
-
+    description: "Played only a few times.",
+    gameId: 1,
     owner: {
       userId: 1,
       username: "markoZG",
@@ -37,35 +14,13 @@ export const mockListings = [
       country: "Croatia",
     },
   },
-
   {
     listingId: 2,
     condition: "Good",
     isActive: true,
-    created_at: "2025-01-12",
-    description: "Box slightly worn, cards sleeved.",
-
-    media: {
-      href: "/images/listings/carcassonne-listing.jpg",
-    },
-
-    game: {
-      gameId: 2,
-      gameName: "Carcassonne",
-      publisher: "Hans im Glück",
-      yearPublished: 2000,
-      maxMinPlayers: "2–5",
-      avgPlayTime: 45,
-      complexity: 1,
-      media: {
-        href: "/images/games/carcassonne.jpg",
-      },
-      genres: [
-        { genreId: 2, genreName: "Family" },
-        { genreId: 3, genreName: "Tile Placement" },
-      ],
-    },
-
+    created_at: "2025-01-11",
+    description: "Box slightly worn.",
+    gameId: 1,
     owner: {
       userId: 2,
       username: "anaST",
@@ -73,36 +28,13 @@ export const mockListings = [
       country: "Croatia",
     },
   },
-
   {
     listingId: 3,
     condition: "Like new",
     isActive: true,
-    created_at: "2025-01-15",
-    description: "Received as a gift, never played.",
-
-    media: {
-      href: "/images/listings/gloomhaven-listing.jpg",
-    },
-
-    game: {
-      gameId: 3,
-      gameName: "Gloomhaven",
-      publisher: "Cephalofair Games",
-      yearPublished: 2017,
-      maxMinPlayers: "1–4",
-      avgPlayTime: 120,
-      complexity: 4,
-      media: {
-        href: "/images/games/gloomhaven.jpg",
-      },
-      genres: [
-        { genreId: 1, genreName: "Strategy" },
-        { genreId: 4, genreName: "Adventure" },
-        { genreId: 5, genreName: "Cooperative" },
-      ],
-    },
-
+    created_at: "2025-01-12",
+    description: "Barely played.",
+    gameId: 1,
     owner: {
       userId: 3,
       username: "ivanRI",
@@ -110,35 +42,13 @@ export const mockListings = [
       country: "Croatia",
     },
   },
-
   {
     listingId: 4,
-    condition: "Acceptable",
+    condition: "Very good",
     isActive: true,
-    created_at: "2025-01-18",
-    description: "Older edition, fully playable.",
-
-    media: {
-      href: "/images/listings/ticket-listing.jpg",
-    },
-
-    game: {
-      gameId: 4,
-      gameName: "Ticket to Ride",
-      publisher: "Days of Wonder",
-      yearPublished: 2004,
-      maxMinPlayers: "2–5",
-      avgPlayTime: 60,
-      complexity: 1,
-      media: {
-        href: "/images/games/ticket.jpg",
-      },
-      genres: [
-        { genreId: 2, genreName: "Family" },
-        { genreId: 6, genreName: "Route Building" },
-      ],
-    },
-
+    created_at: "2025-01-13",
+    description: "All components present.",
+    gameId: 1,
     owner: {
       userId: 4,
       username: "lukaOS",
@@ -146,35 +56,13 @@ export const mockListings = [
       country: "Croatia",
     },
   },
-
   {
     listingId: 5,
-    condition: "Very good",
+    condition: "Good",
     isActive: true,
-    created_at: "2025-01-20",
-    description: "Includes wooden insert.",
-
-    media: {
-      href: "/images/listings/terraforming-listing.jpg",
-    },
-
-    game: {
-      gameId: 5,
-      gameName: "Terraforming Mars",
-      publisher: "FryxGames",
-      yearPublished: 2016,
-      maxMinPlayers: "1–5",
-      avgPlayTime: 120,
-      complexity: 3,
-      media: {
-        href: "/images/games/terraforming.jpg",
-      },
-      genres: [
-        { genreId: 1, genreName: "Strategy" },
-        { genreId: 7, genreName: "Sci-Fi" },
-      ],
-    },
-
+    created_at: "2025-01-14",
+    description: "Well maintained.",
+    gameId: 1,
     owner: {
       userId: 5,
       username: "petraZD",
@@ -182,35 +70,13 @@ export const mockListings = [
       country: "Croatia",
     },
   },
-
   {
     listingId: 6,
-    condition: "Good",
+    condition: "Acceptable",
     isActive: true,
-    created_at: "2025-01-22",
-    description: "Played regularly, well maintained.",
-
-    media: {
-      href: "/images/listings/7wonders-listing.jpg",
-    },
-
-    game: {
-      gameId: 6,
-      gameName: "7 Wonders",
-      publisher: "Repos Production",
-      yearPublished: 2010,
-      maxMinPlayers: "3–7",
-      avgPlayTime: 30,
-      complexity: 2,
-      media: {
-        href: "/images/games/7wonders.jpg",
-      },
-      genres: [
-        { genreId: 1, genreName: "Strategy" },
-        { genreId: 8, genreName: "Card Game" },
-      ],
-    },
-
+    created_at: "2025-01-15",
+    description: "Older edition.",
+    gameId: 1,
     owner: {
       userId: 6,
       username: "nikolaPU",
@@ -218,4 +84,141 @@ export const mockListings = [
       country: "Croatia",
     },
   },
+  {
+    listingId: 7,
+    condition: "Very good",
+    isActive: true,
+    created_at: "2025-01-16",
+    description: "Played a handful of times.",
+    gameId: 1,
+    owner: {
+      userId: 7,
+      username: "marijaKA",
+      town: "Karlovac",
+      country: "Croatia",
+    },
+  },
+  {
+    listingId: 8,
+    condition: "Good",
+    isActive: true,
+    created_at: "2025-01-17",
+    description: "Cards sleeved.",
+    gameId: 1,
+    owner: {
+      userId: 8,
+      username: "dinoDU",
+      town: "Dubrovnik",
+      country: "Croatia",
+    },
+  },
+  {
+    listingId: 9,
+    condition: "Like new",
+    isActive: true,
+    created_at: "2025-01-18",
+    description: "Gift, never played.",
+    gameId: 1,
+    owner: {
+      userId: 9,
+      username: "teaVK",
+      town: "Vukovar",
+      country: "Croatia",
+    },
+  },
+  {
+    listingId: 10,
+    condition: "Very good",
+    isActive: true,
+    created_at: "2025-01-19",
+    description: "Includes expansions.",
+    gameId: 1,
+    owner: {
+      userId: 10,
+      username: "filipSB",
+      town: "Slavonski Brod",
+      country: "Croatia",
+    },
+  },
+  {
+    listingId: 11,
+    condition: "Good",
+    isActive: true,
+    created_at: "2025-01-20",
+    description: "Played regularly.",
+    gameId: 1,
+    owner: {
+      userId: 11,
+      username: "ivaCT",
+      town: "Čakovec",
+      country: "Croatia",
+    },
+  },
+  {
+    listingId: 12,
+    condition: "Very good",
+    isActive: true,
+    created_at: "2025-01-21",
+    description: "Complete, clean.",
+    gameId: 1,
+    owner: {
+      userId: 12,
+      username: "tomislavKR",
+      town: "Krapina",
+      country: "Croatia",
+    },
+  },
+
+  // ===== CARCASSONNE (gameId: 2) – 2 LISTINGA =====
+  {
+    listingId: 13,
+    condition: "Good",
+    isActive: true,
+    created_at: "2025-01-22",
+    description: "Base game only.",
+    gameId: 2,
+    owner: {
+      userId: 13,
+      username: "lucijaPU",
+      town: "Pula",
+      country: "Croatia",
+    },
+  },
+  {
+    listingId: 14,
+    condition: "Like new",
+    isActive: true,
+    created_at: "2025-01-23",
+    description: "Played once.",
+    gameId: 2,
+    owner: {
+      userId: 14,
+      username: "andrejZG",
+      town: "Zagreb",
+      country: "Croatia",
+    },
+  },
+
+  // ===== GLOOMHAVEN (gameId: 3) – 0 AKTIVNIH LISTINGA (test disabled button) =====
+  {
+    listingId: 15,
+    condition: "Very good",
+    isActive: false,
+    created_at: "2025-01-24",
+    description: "Campaign finished.",
+    gameId: 3,
+    owner: {
+      userId: 15,
+      username: "stjepanRI",
+      town: "Rijeka",
+      country: "Croatia",
+    },
+  },
 ];
+
+
+
+
+
+
+

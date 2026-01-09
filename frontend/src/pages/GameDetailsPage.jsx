@@ -1,28 +1,53 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import { mockListings } from "../data/mockListings";
-import logo from "../assets/logo.png";
-
-const difficultyMap = {
-  1: { label: "Easy", color: "bg-green-100 text-green-700" },
-  2: { label: "Easy", color: "bg-green-100 text-green-700" },
-  3: { label: "Medium", color: "bg-yellow-100 text-yellow-700" },
-  4: { label: "Hard", color: "bg-red-100 text-red-700" },
-  5: { label: "Hard", color: "bg-red-100 text-red-700" },
-};
+import { mockGames } from "../data/mockGames";
+import logo from "../assets/logo.png"
 
 const GameDetailsPage = () => {
   const { id } = useParams();
+  const gameId = Number(id);
 
-  const listing = mockListings.find(
-    (l) => l.listingId.toString() === id
+console.log("useParams id:", id, "Number(id):", gameId);
+
+
+  const game = mockGames.find((g) => g.gameId === gameId);
+
+    // svi listingi za ovu igru
+  const listings = mockListings.filter(
+    (l) => l.gameId === gameId && l.isActive
   );
 
-  if (!listing) {
-    return <p className="text-center mt-10">Listing not found.</p>;
+
+  const [showListings, setShowListings] = useState(false);
+
+  if (!game) {
+    return (
+      <p className="text-center mt-10 text-vintage-brown">
+        Game not found.
+      </p>
+    );
   }
 
-  const game = listing.game;
-  const difficulty = difficultyMap[game.complexity];
+  const hasListings = listings.length > 0;
+
+  const complexityLabel =
+    game.complexity <= 1
+      ? "Easy"
+      : game.complexity === 2
+      ? "Medium"
+      : game.complexity === 3
+      ? "Hard"
+      : "Very hard";
+
+  const complexityColor =
+    game.complexity <= 1
+      ? "text-green-600"
+      : game.complexity === 2
+      ? "text-yellow-600"
+      : game.complexity === 3
+      ? "text-orange-600"
+      : "text-red-600";
 
   return (
     <div className="bg-vintage-cream min-h-screen py-16 px-4">
@@ -35,61 +60,102 @@ const GameDetailsPage = () => {
         </Link>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Game Image */}
+          {/* IMAGE */}
           <img
-            src={game.media.href}
+            src={game.media?.href}
             alt={game.gameName}
-            onError={(e) => { e.target.src = logo; }}
+            onError={(e) => {
+              e.target.src = logo;
+            }}
             className="rounded-xl shadow-md"
           />
 
-          <div className="flex flex-col">
-            <h1 className="text-3xl font-playfair font-bold text-vintage-brown mb-3">
+          {/* DETAILS */}
+          <div>
+            <h1 className="text-3xl font-playfair font-bold text-vintage-brown mb-2">
               {game.gameName}
             </h1>
 
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className={`text-xs px-2 py-1 rounded-full font-medium ${difficulty.color}`}
-              >
-                {difficulty.label}
-              </span>
-              <span className="text-sm text-vintage-brown/70">
-                {game.avgPlayTime} min
-              </span>
+            <p className="text-vintage-brown/70 mb-4">
+              {game.publisher} · {game.yearPublished}
+            </p>
+
+            <div className="space-y-2 text-vintage-brown">
+              <p>
+                <strong>Players:</strong> {game.maxMinPlayers}
+              </p>
+              <p>
+                <strong>Average play time:</strong> {game.avgPlayTime} min
+              </p>
+              <p>
+                <strong>Complexity:</strong>{" "}
+                <span className={`font-semibold ${complexityColor}`}>
+                  {complexityLabel}
+                </span>
+              </p>
+              <p>
+                <strong>Genres:</strong>{" "}
+                {game.genres.map((g) => g.genreName).join(", ")}
+              </p>
             </div>
 
-            <p className="text-vintage-brown/80 mb-2">{listing.description}</p>
-
-            <p className="mb-2">
-              <strong>Publisher:</strong> {game.publisher}
-            </p>
-
-            <p className="mb-2">
-              <strong>Year Published:</strong> {game.yearPublished}
-            </p>
-
-            <p className="mb-2">
-              <strong>Players:</strong> {game.maxMinPlayers}
-            </p>
-
-            <p className="mb-2">
-              <strong>Condition:</strong> {listing.condition}
-            </p>
-
-            <p className="mb-2">
-              <strong>Genres:</strong>{" "}
-              {game.genres?.map((g) => g.genreName).join(", ") ?? "Unknown"}
-            </p>
-
-            <p className="mb-4">
-              <strong>Owner:</strong> {listing.owner.username} (
-              {listing.owner.town}, {listing.owner.country})
-            </p>
-
-            <button className="bg-vintage-accent text-white px-6 py-3 rounded-full hover:bg-amber-700 transition mt-auto">
-              Offer Trade
+            {/* VIEW LISTINGS BUTTON */}
+            <button
+              disabled={!hasListings}
+              onClick={() =>
+                hasListings && setShowListings((prev) => !prev)
+              }
+              className={`mt-6 px-6 py-3 rounded-full text-white transition
+                ${
+                  hasListings
+                    ? "bg-vintage-accent hover:bg-amber-700"
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
+            >
+              {hasListings
+                ? `View listings (${listings.length})`
+                : "No listings available"}
             </button>
+
+            {/* LISTINGS DROPDOWN */}
+            {hasListings && showListings && (
+              <div
+                className="
+                  mt-6
+                  space-y-3
+                  max-h-96
+                  overflow-y-auto
+                  pr-2
+                "
+              >
+                {listings.map((listing) => (
+                  <div
+                    key={listing.listingId}
+                    className="border rounded-lg p-4 bg-white shadow-sm flex justify-between items-center"
+                  >
+                    <div className="text-sm text-vintage-brown">
+                      <p className="font-semibold">
+                        {listing.owner.username}
+                      </p>
+                      <p>
+                        {listing.owner.town}, {listing.owner.country}
+                      </p>
+                      <p className="italic">
+                        Condition: {listing.condition}
+                      </p>
+                    </div>
+
+                    <Link
+                      to={`/offer/${listing.listingId}`}
+                      className="text-sm bg-vintage-accent text-white px-4 py-2 rounded-full hover:bg-amber-700"
+                    >
+                      Offer trade
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+
           </div>
         </div>
       </div>
