@@ -1,18 +1,22 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://stiropor-api.azurewebsites.net",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080", //OBAVEZNO VRATITI PRIJE PUSHA NA MAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LUAK CITAJ
   withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem("jwt");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const getCurrentUser = async () => {
   try {
-    const token = sessionStorage.getItem('jwt');
-    const res = await api.get("/me", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
+    const res = await api.get("/me", {withCredentials: true});
     console.log(res.data)
-
     return res.data;
   } catch (err) {
     console.error("Get current user failed:", err);
@@ -22,7 +26,7 @@ export const getCurrentUser = async () => {
 
 export const logoutUser = async () => {
   try {
-    const res = await api.get("/logout");
+    const res = await api.post("/logout");
     return res.data;
   } catch (err) {
     console.error("Fetch users failed:", err);

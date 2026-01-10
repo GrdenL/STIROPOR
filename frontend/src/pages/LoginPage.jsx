@@ -22,14 +22,18 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      sessionStorage.removeItem("jwt");
       const { email, password } = formData;
       const res = await login(email, password);
-      if (!res.data) {
+      if (!res?.data?.user) {
         alert("Pogrešan email ili lozinka.");
         return;
       }
+      if (res.data.token) {
+        sessionStorage.setItem("jwt", res.data.token);
+      }
       // uspjeh
-      console.log("Ulogiran:", res.data);
+      console.log("Ulogiran:", res.data.user);
       window.location.href = "/";
     } catch (err) {
       console.error(err);

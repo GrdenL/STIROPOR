@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../index.css";
 import { Link } from "react-router-dom";
-import { googleAuthUrl } from "../utils/api";
+import { register, googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
 
 const RegisterPage = () => {
@@ -62,7 +62,7 @@ const RegisterPage = () => {
           location: formData.location,
         };
 
-        const res = await register(payload);
+        const res = await register(payload.email, payload.username, payload.password, payload.location);
         if (!res.data) {
           alert("Korisnik već postoji ili registracija nije uspjela.");
           return;

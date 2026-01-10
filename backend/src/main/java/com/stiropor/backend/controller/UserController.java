@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -47,9 +48,14 @@ public class UserController {
                 }
             }
             if (jwt == null) {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+                    jwt = authHeader.substring(7);
+                }
+            }
+            if (jwt == null) {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
-
 
             String email = jwtUtil.extractUsername(jwt);
             User user =  userService.findByEmail(email);
@@ -82,10 +88,10 @@ public class UserController {
                 cookie.setMaxAge(60 * 60 * 24);
                 cookie.setPath("/");
                 cookie.setHttpOnly(true);
-                cookie.setSecure(true);
-                cookie.setAttribute("SameSite", "None");
+                cookie.setSecure(false);                                 //ZAMIJENI NA TRUE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                cookie.setAttribute("SameSite", "Lax");          //ZAMIJENI NA NONE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 response.addCookie(cookie);
-                return ResponseEntity.ok(user);
+                return ResponseEntity.ok(Map.of("user", user, "token", token));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid credentials");
@@ -175,10 +181,10 @@ public class UserController {
 
             Cookie cookie = new Cookie("jwt", null);
             cookie.setHttpOnly(true);
-            cookie.setSecure(true);
+            cookie.setSecure(false);                           //ZAMIJENI NA TRUE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 10);
-            cookie.setAttribute("SameSite", "None");
+            cookie.setMaxAge(0);
+            cookie.setAttribute("SameSite", "Lax");          //ZAMIJENI NA NONE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             response.addCookie(cookie);
 
             return ResponseEntity.ok("Logged out successfully");
