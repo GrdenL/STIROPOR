@@ -2,24 +2,20 @@ import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { mockListings } from "../data/mockListings";
 import { mockGames } from "../data/mockGames";
-import logo from "../assets/logo.png"
+import logo from "../assets/logo.png";
 
 const GameDetailsPage = () => {
   const { id } = useParams();
   const gameId = Number(id);
 
-console.log("useParams id:", id, "Number(id):", gameId);
-
-
   const game = mockGames.find((g) => g.gameId === gameId);
 
-    // svi listingi za ovu igru
   const listings = mockListings.filter(
     (l) => l.gameId === gameId && l.isActive
   );
 
-
   const [showListings, setShowListings] = useState(false);
+  const [openImage, setOpenImage] = useState({});
 
   if (!game) {
     return (
@@ -49,6 +45,13 @@ console.log("useParams id:", id, "Number(id):", gameId);
       ? "text-orange-600"
       : "text-red-600";
 
+  const toggleImage = (listingId) => {
+    setOpenImage((prev) => ({
+      ...prev,
+      [listingId]: !prev[listingId],
+    }));
+  };
+
   return (
     <div className="bg-vintage-cream min-h-screen py-16 px-4">
       <div className="max-w-6xl mx-auto">
@@ -60,13 +63,11 @@ console.log("useParams id:", id, "Number(id):", gameId);
         </Link>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* IMAGE */}
+          {/* GAME IMAGE */}
           <img
             src={game.media?.href}
             alt={game.gameName}
-            onError={(e) => {
-              e.target.src = logo;
-            }}
+            onError={(e) => (e.target.src = logo)}
             className="rounded-xl shadow-md"
           />
 
@@ -117,45 +118,59 @@ console.log("useParams id:", id, "Number(id):", gameId);
                 : "No listings available"}
             </button>
 
-            {/* LISTINGS DROPDOWN */}
+            {/* LISTINGS */}
             {hasListings && showListings && (
-              <div
-                className="
-                  mt-6
-                  space-y-3
-                  max-h-96
-                  overflow-y-auto
-                  pr-2
-                "
-              >
+              <div className="mt-6 space-y-4 max-h-96 overflow-y-auto pr-2">
                 {listings.map((listing) => (
                   <div
                     key={listing.listingId}
-                    className="border rounded-lg p-4 bg-white shadow-sm flex justify-between items-center"
+                    className="border rounded-lg p-4 bg-white shadow-sm space-y-3"
                   >
-                    <div className="text-sm text-vintage-brown">
-                      <p className="font-semibold">
-                        {listing.owner.username}
-                      </p>
-                      <p>
-                        {listing.owner.town}, {listing.owner.country}
-                      </p>
-                      <p className="italic">
-                        Condition: {listing.condition}
-                      </p>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-vintage-brown">
+                        <p className="font-semibold">
+                          {listing.owner.username}
+                        </p>
+                        <p>
+                          {listing.owner.town}, {listing.owner.country}
+                        </p>
+                        <p className="italic">
+                          Condition: {listing.condition}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => toggleImage(listing.listingId)}
+                          className="text-sm border border-vintage-accent text-vintage-accent px-3 py-2 rounded-full hover:bg-vintage-accent hover:text-white transition"
+                        >
+                          {openImage[listing.listingId]
+                            ? "Hide image"
+                            : "Show image"}
+                        </button>
+
+                        <Link
+                          to={`/offer/${listing.listingId}`}
+                          className="text-sm bg-vintage-accent text-white px-4 py-2 rounded-full hover:bg-amber-700"
+                        >
+                          Offer trade
+                        </Link>
+                      </div>
                     </div>
 
-                    <Link
-                      to={`/offer/${listing.listingId}`}
-                      className="text-sm bg-vintage-accent text-white px-4 py-2 rounded-full hover:bg-amber-700"
-                    >
-                      Offer trade
-                    </Link>
+                    {/* SINGLE IMAGE */}
+                    {openImage[listing.listingId] && (
+                      <img
+                        src={listing.media?.href || logo}
+                        alt="Listing"
+                        onError={(e) => (e.target.src = logo)}
+                        className="h-32 w-32 object-cover rounded-lg border"
+                      />
+                    )}
                   </div>
                 ))}
               </div>
             )}
-
           </div>
         </div>
       </div>

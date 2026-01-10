@@ -6,6 +6,7 @@ import GamesPage from "./pages/GamesPage";
 import GameDetailsPage from "./pages/GameDetailsPage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import OfferTradePage from "./pages/OfferTradePage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/games" element={<GamesPage />} />
           <Route path="/games/:id" element={<GameDetailsPage />} />
+          <Route path="/offer/:listingId" element={<OfferTradePage />} />
         </Routes>
       </main>
 
