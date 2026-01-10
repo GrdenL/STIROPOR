@@ -80,7 +80,7 @@ public class User {
     }
 
     public User(String googleId, String email, String username,
-                Double latitude, Double longitude, Town town) {
+                Double latitude, Double longitude) {
         this.googleId = googleId;
         this.email = email;
         this.username = username;
@@ -88,7 +88,7 @@ public class User {
         this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.town = town;
+        this.town = null;
     }
 
 

@@ -1,9 +1,9 @@
 package com.stiropor.backend.controller;
 
+import com.stiropor.backend.model.Country;
+import com.stiropor.backend.model.Town;
 import com.stiropor.backend.model.User;
-import com.stiropor.backend.service.BCryptService;
-import com.stiropor.backend.service.NominatimService;
-import com.stiropor.backend.service.UserService;
+import com.stiropor.backend.service.*;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,12 +24,16 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final TownService townService;
+    private final CountryService countryService;
     private final JwtUtil jwtUtil;
     private final NominatimService nominatimService;
     private final BCryptService bCryptService;
 
-    public UserController(UserService userService, JwtUtil jwtUtil, NominatimService nominatimService, BCryptService bCryptService) {
+    public UserController(UserService userService, TownService townService, CountryService countryService, JwtUtil jwtUtil, NominatimService nominatimService, BCryptService bCryptService) {
         this.userService = userService;
+        this.townService = townService;
+        this.countryService = countryService;
         this.jwtUtil = jwtUtil;
         this.nominatimService = nominatimService;
         this.bCryptService = bCryptService;
@@ -160,7 +164,16 @@ public class UserController {
             //}
             //mozemo dodati da ne radi ako je neispravna lokacija kasnije
 
-            User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, lat, lon));
+            Town town = townService.findByName(location.split(",")[2]);
+            if(town == null) {
+                Country country = countryService.findById(location.split(",")[3]);
+                if (country == null){
+                    country = new Country(location.split(",")[3]);
+                }
+                town = new Town(location.split(",")[2], country);
+            }
+
+            User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, lat, lon, town));
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
 
         } catch (Exception e) {
