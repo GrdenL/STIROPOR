@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface OfferItemRepository extends JpaRepository<OfferItem,Integer> {
-    List<OfferItem> getAllByOffer(Offer offer);
+    List<OfferItem> findAllByOffer(Offer offer);
 }

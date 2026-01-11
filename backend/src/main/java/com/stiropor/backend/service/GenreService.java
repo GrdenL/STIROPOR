@@ -24,6 +24,6 @@ public class GenreService {
         genreRepository.delete(genre);
     }
     public Genre findByName(String genreName) {
-        return genreRepository.getByName(genreName);
+        return genreRepository.findByGenreName(genreName);
     }
 }

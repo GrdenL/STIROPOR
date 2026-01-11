@@ -17,7 +17,7 @@ public class OfferService {
     }
 
     public List<Offer> getByOffer(Listing listing) {
-        return offerRepository.getByListing(listing);
+        return offerRepository.findByListing(listing);
     }
     public Offer save(Offer offer) {
         return offerRepository.save(offer);

@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TownRepository extends JpaRepository<Town, Integer> {
-    Town getByTownName(String townName);
+    Town findByTownName(String townName);
 }

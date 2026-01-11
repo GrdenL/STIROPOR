@@ -15,7 +15,7 @@ public class NotificationService {
     }
 
     public List<Notification> getByUser(User user) {
-        return  notificationRepository.getByUser(user);
+        return  notificationRepository.findByUser(user);
     }
     public void delete(Notification notification) {
         notificationRepository.delete(notification);

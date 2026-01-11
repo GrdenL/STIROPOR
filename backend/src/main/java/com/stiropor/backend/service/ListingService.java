@@ -23,15 +23,15 @@ public class ListingService {
         listingRepository.delete(listing);
     }
     public List<Listing> findAllByGame(Game game) {
-        return listingRepository.getAllByGame(game);
+        return listingRepository.findAllByGame(game);
     }
     public List<Listing> findAllByUser(User user) {
-        return listingRepository.getAllByUser(user);
+        return listingRepository.findAllByUser(user);
     }
     public List<Listing> findAll() {
         return listingRepository.findAll();
     }
     public List<Listing> findAllByGameAndUser(Game game, User user) {
-        return listingRepository.getAllByUserAndGame(user, game);
+        return listingRepository.findAllByUserAndGame(user, game);
     }
 }

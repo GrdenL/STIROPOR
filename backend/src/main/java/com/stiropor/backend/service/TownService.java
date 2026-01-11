@@ -12,7 +12,7 @@ public class TownService {
     }
 
     public Town findByName(String Name) {
-        return townRepository.getByTownName(Name);
+        return townRepository.findByTownName(Name);
     }
     public Town save(Town town) {
         return townRepository.save(town);

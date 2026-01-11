@@ -15,7 +15,7 @@ public class OfferItemService {
     }
 
     public List<OfferItem> getByOffer(Offer offer) {
-        return offerItemRepository.getAllByOffer(offer);
+        return offerItemRepository.findAllByOffer(offer);
     }
     public OfferItem save(OfferItem offerItem) {
         return offerItemRepository.save(offerItem);

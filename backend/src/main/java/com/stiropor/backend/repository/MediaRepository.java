@@ -5,7 +5,9 @@ import com.stiropor.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MediaRepository extends JpaRepository<Media,Integer> {
-    Media getByUser(User user);
+    List<Media> findByUser(User user);
 }

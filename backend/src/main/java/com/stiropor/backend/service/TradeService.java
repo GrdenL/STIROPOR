@@ -13,7 +13,7 @@ public class TradeService {
     }
 
     public Trade findByOffer(Offer offer) {
-        return tradeRepository.getByOffer(offer);
+        return tradeRepository.findByOffer(offer);
     }
     public void delete(Trade trade) {
         tradeRepository.delete(trade);

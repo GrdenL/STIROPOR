@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface OfferRepository extends JpaRepository<Offer,Integer> {
-    List<Offer> getByListing(Listing listing);
+    List<Offer> findByListing(Listing listing);
 }

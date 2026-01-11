@@ -20,7 +20,7 @@ public class MediaService {
     public void delete(Media media) {
         mediaRepository.delete(media);
     }
-    public Media findByUser(User user) {
-        return mediaRepository.getByUser(user);
+    public List<Media> findByUser(User user) {
+        return mediaRepository.findByUser(user);
     }
 }

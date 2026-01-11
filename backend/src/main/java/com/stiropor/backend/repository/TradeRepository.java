@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TradeRepository extends JpaRepository<Trade,Integer> {
-    Trade getByOffer(Offer offer);
+    Trade findByOffer(Offer offer);
 }

@@ -18,8 +18,8 @@ public class GameService {
     public List<Game> findAll() {
         return gameRepository.findAll();
     }
-    public Game findByName(String gameName) {
-        return gameRepository.getByName(gameName);
+    public Game getByGameName(String gameName) {
+        return gameRepository.findByGameName(gameName);
     }
     public void delete(Game game) {
         gameRepository.delete(game);
@@ -28,6 +28,6 @@ public class GameService {
         return gameRepository.save(game);
     }
     public List<Game> findAllByGenre(Genre genre) {
-        return gameRepository.findAllByGenre(genre);
+        return gameRepository.findAllByGenresContaining(genre);
     }
 }
