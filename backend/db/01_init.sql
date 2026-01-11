@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS games (
   avg_play_time INT NOT NULL,
   complexity INT NOT NULL,
   year_published INT NOT NULL,
-  media_id INT NOT NULL REFERENCES media(media_id)
+  media_id INT REFERENCES media(media_id)
 );
 
 CREATE TABLE IF NOT EXISTS listing (

@@ -31,8 +31,8 @@ public class Game{
 	@Column(name = "yearPublished", nullable = false)
 	private Integer yearPublished;
 
-	@ManyToOne
-	@JoinColumn(name = "mediaId", nullable = false)
+	@ManyToOne(optional = true)
+	@JoinColumn(name = "mediaId")
 	private Media media;
 
 	

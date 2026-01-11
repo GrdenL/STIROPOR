@@ -1,0 +1,188 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const getInitials = (name) => {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+};
+
+const EditProfilePage = () => {
+  const { user } = useAuth();
+  const [username, setUsername] = useState(user?.username || "Luka Hacek");
+  const [bio, setBio] = useState(
+    user?.description || "Board game collector & trader"
+  );
+  const [location, setLocation] = useState("Zagreb, Croatia");
+  const [avatarDataUrl, setAvatarDataUrl] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+
+  useEffect(() => {
+    if (user?.username) setUsername(user.username);
+    if (user?.description) setBio(user.description);
+  }, [user]);
+
+  useEffect(() => {
+    if (!showPopup) return undefined;
+    const timer = setTimeout(() => setShowPopup(false), 2500);
+    return () => clearTimeout(timer);
+  }, [showPopup]);
+
+  const initials = useMemo(() => getInitials(username), [username]);
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarDataUrl(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setShowPopup(true);
+  };
+
+  return (
+    <div className="bg-vintage-cream text-vintage-brown font-roboto">
+      {showPopup ? (
+        <div className="fixed top-24 right-6 bg-emerald-500 text-white px-6 py-4 rounded-xl shadow-2xl z-[60]">
+          Profile updated successfully ✔
+        </div>
+      ) : null}
+
+      <section className="bg-vintage-brown text-vintage-cream pt-32 pb-28">
+        <div className="max-w-5xl mx-auto text-center px-4 translate-y-8">
+          <h1 className="text-4xl font-playfair font-bold mb-4">Edit Profile</h1>
+          <p className="text-base opacity-80">Update your profile information</p>
+        </div>
+      </section>
+
+      <section className="py-20">
+        <div className="max-w-2xl mx-auto px-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-8"
+          >
+            <div className="mb-8 text-center">
+              <label className="block text-sm font-medium mb-4 text-left">
+                Profile Picture
+              </label>
+              <div className="relative inline-block">
+                <div className="w-32 h-32 mx-auto rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent text-4xl font-bold mb-4 overflow-hidden">
+                  {avatarDataUrl ? (
+                    <img
+                      src={avatarDataUrl}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
+                <label className="absolute bottom-2 right-2 bg-vintage-accent text-white p-2 rounded-full shadow-lg hover:bg-amber-700 transition cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </label>
+              </div>
+              {avatarDataUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setAvatarDataUrl(null)}
+                  className="text-red-500 text-sm font-medium hover:text-red-700 mt-2"
+                >
+                  Remove Picture
+                </button>
+              ) : null}
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Username</label>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                type="text"
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Bio</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent resize-none"
+                rows="3"
+                placeholder="Tell us about yourself..."
+              />
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Location</label>
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                type="text"
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
+                placeholder="e.g. Zagreb, Croatia"
+                required
+              />
+              <p className="text-xs text-vintage-brown/60 mt-2">
+                Your location helps match you with nearby traders
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 bg-vintage-accent text-white py-3 rounded-full hover:bg-amber-700 transition"
+              >
+                Save Changes
+              </button>
+              <Link
+                to="/profile"
+                className="px-8 bg-gray-300 text-vintage-brown py-3 rounded-full hover:bg-gray-400 transition text-center"
+              >
+                Cancel
+              </Link>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default EditProfilePage;

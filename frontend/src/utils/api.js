@@ -34,6 +34,26 @@ export const logoutUser = async () => {
   }
 }
 
+export const getMyListings = async () => {
+  try {
+    const res = await api.get("/listings/me", { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Get listings failed:", err);
+    return null;
+  }
+}
+
+export const createListing = async (payload) => {
+  try {
+    const res = await api.post("/listings", payload, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Create listing failed:", err);
+    return null;
+  }
+}
+
 export const login = async (email, password) => {
     try{
         const res = await api.post("/login", null, {

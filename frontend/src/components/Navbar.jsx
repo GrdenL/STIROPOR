@@ -77,14 +77,15 @@ const Navbar = () => {
                 aria-label="User menu"
                 className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded-lg shadow-lg py-1 overflow-hidden z-50"
               >
-                <div
+                <Link
+                  to="/profile"
                   onClick={() => setOpen(false)}
                   className="flex items-center px-4 py-2 text-sm hover:bg-gray-100 transition no-underline text-gray-800"
                   role="menuitem"
                 >
                   <User size={16} className="mr-2" />
                   Profile
-                </div>
+                </Link>
 
                 <button
                   onClick={handleLogout}

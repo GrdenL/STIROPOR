@@ -27,6 +27,9 @@ public class GameService {
     public Game save(Game game) {
         return gameRepository.save(game);
     }
+    public java.util.Optional<Game> findById(Integer gameId) {
+        return gameRepository.findById(gameId);
+    }
     public List<Game> findAllByGenre(Genre genre) {
         return gameRepository.findAllByGenresContaining(genre);
     }

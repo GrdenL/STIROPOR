@@ -33,8 +33,8 @@ public class Listing{
 	@JoinColumn(name = "gameId", nullable = false)
 	private Game game;
 
-	@ManyToOne
-	@JoinColumn(name = "mediaId", nullable = false)
+	@ManyToOne(optional = true)
+	@JoinColumn(name = "mediaId")
 	private Media media;
 
 	public Listing() {

@@ -7,6 +7,12 @@ import GameDetailsPage from "./pages/GameDetailsPage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import OfferTradePage from "./pages/OfferTradePage";
+import ProfilePage from "./pages/ProfilePage";
+import EditProfilePage from "./pages/EditProfilePage";
+import MyGamesPage from "./pages/MyGamesPage";
+import MyTradesPage from "./pages/MyTradesPage";
+import WishlistPage from "./pages/WishlistPage";
+import AddEditGamePage from "./pages/AddEditGamePage";
 
 function App() {
   return (
@@ -21,6 +27,12 @@ function App() {
           <Route path="/games" element={<GamesPage />} />
           <Route path="/games/:id" element={<GameDetailsPage />} />
           <Route path="/offer/:listingId" element={<OfferTradePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/edit" element={<EditProfilePage />} />
+          <Route path="/my-games" element={<MyGamesPage />} />
+          <Route path="/my-trades" element={<MyTradesPage />} />
+          <Route path="/add-edit" element={<AddEditGamePage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
         </Routes>
       </main>
 
