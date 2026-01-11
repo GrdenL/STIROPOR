@@ -1,10 +1,11 @@
 package com.stiropor.backend.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "town")
-
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Town {
 	@Id
     	@GeneratedValue(strategy = GenerationType.IDENTITY)

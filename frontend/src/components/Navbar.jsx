@@ -2,30 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, User } from "lucide-react";
 import logo from "../assets/logo.png";
-import { getCurrentUser, logoutUser } from "../utils/api";
+import { logoutUser } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 import "../index.css";
 
 const Navbar = () => {
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    if (token) sessionStorage.setItem("jwt", token);
-
-    const fetchUser = async () => {
-      try {
-        const data = await getCurrentUser();
-        if (data) setUser(data);
-      } catch (err) {
-        console.error("getCurrentUser error:", err);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -54,7 +38,7 @@ const Navbar = () => {
       console.error("logout error:", err);
     } finally {
       sessionStorage.removeItem("jwt");
-      setUser(null);
+      logout();
       setOpen(false);
     }
   };

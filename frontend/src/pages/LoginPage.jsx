@@ -3,8 +3,12 @@ import { Link } from "react-router-dom";
 import "../index.css";
 import {googleAuthUrl, login} from "../utils/api";
 import logo from "../assets/logo.png";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { login: setAuthUser } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,9 +36,10 @@ const LoginPage = () => {
       if (res.data.token) {
         sessionStorage.setItem("jwt", res.data.token);
       }
+      setAuthUser(res.data.user);
       // uspjeh
       console.log("Ulogiran:", res.data.user);
-      window.location.href = "/";
+      navigate("/", { replace: true });
     } catch (err) {
       console.error(err);
       alert("Login nije uspio.");

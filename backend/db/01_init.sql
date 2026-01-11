@@ -117,3 +117,11 @@ ON CONFLICT (country_id) DO NOTHING;
 INSERT INTO town (town_id, town_name, country_id)
 VALUES (1, 'Unknown', 1)
 ON CONFLICT (town_id) DO NOTHING;
+
+SELECT setval(pg_get_serial_sequence('country', 'country_id'),
+              COALESCE((SELECT MAX(country_id) FROM country), 1),
+              true);
+
+SELECT setval(pg_get_serial_sequence('town', 'town_id'),
+              COALESCE((SELECT MAX(town_id) FROM town), 1),
+              true);

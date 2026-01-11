@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import "../index.css";
-import { Link } from "react-router-dom";
-import { register, googleAuthUrl } from "../utils/api";
+import { Link, useNavigate } from "react-router-dom";
+import { login, register, googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
+import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const { login: setAuthUser } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -63,11 +66,20 @@ const RegisterPage = () => {
         };
 
         const res = await register(payload.email, payload.username, payload.password, payload.location);
-        if (!res.data) {
+        if (!res?.data) {
           alert("Korisnik već postoji ili registracija nije uspjela.");
           return;
         }
-        alert("Registracija uspješna! Možete se prijaviti.");
+        const loginRes = await login(payload.email, payload.password);
+        if (!loginRes?.data?.user) {
+          alert("Registracija je uspjela, ali prijava nije uspjela.");
+          return;
+        }
+        if (loginRes.data.token) {
+          sessionStorage.setItem("jwt", loginRes.data.token);
+        }
+        setAuthUser(loginRes.data.user);
+        navigate("/", { replace: true });
       } catch (err) {
         console.error(err);
         alert("Greška pri registraciji.");

@@ -72,7 +72,7 @@ public class UserController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAll();
         return ResponseEntity.ok(users);
@@ -164,13 +164,10 @@ public class UserController {
             //}
             //mozemo dodati da ne radi ako je neispravna lokacija kasnije
 
-            Town town = townService.findByName(location.split(",")[2]);
-            if(town == null) {
-                Country country = countryService.findById(location.split(",")[3]);
-                if (country == null){
-                    country = new Country(location.split(",")[3]);
-                }
-                town = new Town(location.split(",")[2], country);
+            Town town = townService.findByName("Unknown");
+            if (town == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Default town not found.");
             }
 
             User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, lat, lon, town));
