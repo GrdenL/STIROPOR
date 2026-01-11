@@ -48,15 +48,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             User user = userService.findByEmail(email);
 
             if (user == null) {
-                user = new User();
-                user.setEmail(email);
-                user.setUsername(name != null ? name : "");
-                user.setDescription("");
-                user.setRole("USER");
-                user.setTownId(1);
-                user.setGoogleId(googleId);
-                user.setLatitude(0.0);
-                user.setLongitude(0.0);
+                user = new User(googleId, email, name != null ? name : "", 0.0, 0.0);
                 userService.save(user);
             } else if (user.getGoogleId() == null) {
                 user.setGoogleId(googleId);
