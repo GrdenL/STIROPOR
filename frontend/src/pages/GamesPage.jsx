@@ -129,14 +129,16 @@ const GamesPage = () => {
                 key={game.gameId}
                 className="bg-white rounded-xl shadow-sm hover:shadow-lg transition flex flex-col"
               >
-                <img
-                  src={game.media.href}
-                  alt={game.gameName}
-                  onError={(e) => {
-                    e.target.src =logo;
-                  }}
-                  className="w-full h-48 object-cover rounded-t-xl"
-                />
+                <div className="w-full h-48 bg-white rounded-t-xl flex items-center justify-center p-4">
+                  <img
+                    src={game.media.href}
+                    alt={game.gameName}
+                    onError={(e) => {
+                      e.target.src = logo;
+                    }}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
 
                 <div className="p-5 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-2">
