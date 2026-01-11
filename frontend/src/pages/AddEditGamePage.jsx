@@ -24,6 +24,9 @@ const mockGames = [
   "Everdell",
 ];
 
+const blobBaseUrl = import.meta.env.VITE_BLOB_BASE_URL;
+const blobSas = import.meta.env.VITE_BLOB_SAS;
+
 const AddEditGamePage = () => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +76,9 @@ const AddEditGamePage = () => {
   const resetForm = () => {
     setGameName("");
     setCondition("");
+    if (selectedImage?.previewUrl) {
+      URL.revokeObjectURL(selectedImage.previewUrl);
+    }
     setSelectedImage(null);
   };
 
@@ -85,11 +91,28 @@ const AddEditGamePage = () => {
       alert(`${file.name} is not an image file`);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setSelectedImage(event.target.result);
-    };
-    reader.readAsDataURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    setSelectedImage({ file, previewUrl });
+  };
+
+  const uploadImage = async (file) => {
+    if (!blobBaseUrl || !blobSas) {
+      throw new Error("Missing blob storage configuration.");
+    }
+    const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const uploadUrl = `${blobBaseUrl}/${safeName}?${blobSas}`;
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "x-ms-blob-type": "BlockBlob",
+        "Content-Type": file.type || "application/octet-stream",
+      },
+      body: file,
+    });
+    if (!response.ok) {
+      throw new Error(`Upload failed with ${response.status}`);
+    }
+    return `${blobBaseUrl}/${safeName}`;
   };
 
   const handleSubmit = async (event) => {
@@ -104,8 +127,14 @@ const AddEditGamePage = () => {
       condition,
       description: "",
     };
-    if (selectedImage) {
-      payload.mediaHref = selectedImage;
+    if (selectedImage?.file) {
+      try {
+        payload.mediaHref = await uploadImage(selectedImage.file);
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        alert("Image upload failed.");
+        return;
+      }
     }
 
     const created = await createListing(payload);
@@ -251,13 +280,16 @@ const AddEditGamePage = () => {
                     <div className="flex gap-4 mt-4 flex-wrap">
                       <div className="relative">
                         <img
-                          src={selectedImage}
+                          src={selectedImage.previewUrl}
                           alt="Preview"
                           className="w-24 h-24 object-cover rounded-xl border"
                         />
                         <button
                           type="button"
-                          onClick={() => setSelectedImage(null)}
+                          onClick={() => {
+                            URL.revokeObjectURL(selectedImage.previewUrl);
+                            setSelectedImage(null);
+                          }}
                           className="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full hover:bg-red-600"
                         >
                           ×
