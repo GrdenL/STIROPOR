@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { mockGames } from "../data/mockGames";
-import logo from  "../assets/logo.png"
+import { getAllGames } from "../utils/api";
+import logo from "../assets/logo.png";
+
 const difficultyMap = {
   1: { label: "Easy", color: "bg-green-100 text-green-700" },
   2: { label: "Easy", color: "bg-green-100 text-green-700" },
@@ -24,44 +25,81 @@ const playerCountMatches = (range, selected) => {
   return selectedNumber >= min && selectedNumber <= max;
 };
 
-// 👉 izvuci sve jedinstvene žanrove
-const allGenres = Array.from(
-  new Set(
-    mockGames.flatMap((g) => g.genres.map((genre) => genre.genreName))
-  )
-).sort();
-
 const GamesPage = () => {
+  // Fetch games directly in this component
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState("All");
   const [players, setPlayers] = useState("All");
   const [genre, setGenre] = useState("All");
 
-  const filteredGames = mockGames.filter((game) => {
+  // Fetch on mount
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllGames();
+        setGames(data || []);
+      } catch (err) {
+        setError(err.message);
+        console.error("Error loading games:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGames();
+  }, []);
+
+  // Extract unique genres
+  const allGenres = Array.from(
+    new Set(
+      games.flatMap((g) => g.genres?.map((genre) => genre.genreName) || [])
+    )
+  ).sort();
+
+  // Filter games
+  const filteredGames = games.filter((game) => {
     const matchesSearch = game.gameName
       .toLowerCase()
       .includes(search.toLowerCase());
 
     const matchesDifficulty =
       difficulty === "All" ||
-      difficultyMap[game.complexity].label === difficulty;
+      difficultyMap[game.complexity]?.label === difficulty;
 
-    const matchesPlayers = playerCountMatches(
-      game.maxMinPlayers,
-      players
-    );
+    const matchesPlayers = playerCountMatches(game.maxMinPlayers, players);
 
     const matchesGenre =
-      genre === "All" ||
-      game.genres.some((g) => g.genreName === genre);
+      genre === "All" || game.genres?.some((g) => g.genreName === genre);
 
-    return (
-      matchesSearch &&
-      matchesDifficulty &&
-      matchesPlayers &&
-      matchesGenre
-    );
+    return matchesSearch && matchesDifficulty && matchesPlayers && matchesGenre;
   });
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-vintage-cream min-h-screen py-16 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-vintage-brown text-xl">Loading games...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-vintage-cream min-h-screen py-16 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-red-600 text-xl">Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-vintage-cream min-h-screen py-16 px-4">
@@ -131,7 +169,7 @@ const GamesPage = () => {
               >
                 <div className="w-full h-48 bg-white rounded-t-xl flex items-center justify-center p-4">
                   <img
-                    src={game.media.href}
+                    src={game.media?.href}
                     alt={game.gameName}
                     onError={(e) => {
                       e.target.src = logo;
@@ -147,9 +185,9 @@ const GamesPage = () => {
                     </h3>
 
                     <span
-                      className={`text-xs px-2 py-1 rounded-full font-medium ${difficulty.color}`}
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${difficulty?.color}`}
                     >
-                      {difficulty.label}
+                      {difficulty?.label}
                     </span>
                   </div>
 
@@ -162,7 +200,7 @@ const GamesPage = () => {
                   </p>
 
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {game.genres.map((g) => (
+                    {game.genres?.map((g) => (
                       <span
                         key={g.genreId}
                         className="text-xs bg-vintage-brown/10 text-vintage-brown px-2 py-1 rounded-full"

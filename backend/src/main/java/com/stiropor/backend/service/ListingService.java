@@ -22,6 +22,7 @@ public class ListingService {
     public void delete(Listing listing) {
         listingRepository.delete(listing);
     }
+    public Listing findByListingId(Integer id) { return listingRepository.findByListingId(id); }
     public List<Listing> findAllByGame(Game game) {
         return listingRepository.findAllByGame(game);
     }
@@ -33,5 +34,8 @@ public class ListingService {
     }
     public List<Listing> findAllByGameAndUser(Game game, User user) {
         return listingRepository.findAllByUserAndGame(user, game);
+    }
+    public List<Listing> findAllByGameIdExcludingUser(Integer gameId, User user) {
+        return listingRepository.findAllByGame_GameIdAndUserNot(gameId, user);
     }
 }

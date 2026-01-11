@@ -11,7 +11,9 @@ import java.util.List;
 
 @Repository
 public interface ListingRepository extends JpaRepository<Listing, Integer> {
+    Listing findByListingId(Integer id);
     List<Listing> findAllByGame(Game game);
     List<Listing> findAllByUser(User user);
     List<Listing> findAllByUserAndGame(User user, Game game);
+    List<Listing> findAllByGame_GameIdAndUserNot(Integer gameId, User user);
 }

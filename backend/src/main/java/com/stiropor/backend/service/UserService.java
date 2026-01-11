@@ -14,6 +14,8 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public User findByUserId(int id) { return userRepository.findByUserId(id); }
+
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }

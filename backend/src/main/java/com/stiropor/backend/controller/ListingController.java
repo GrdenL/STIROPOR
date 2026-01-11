@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,10 +68,10 @@ public class ListingController {
         }
 
         Media media = null;
+//        media = mediaService.save(new Media("random media", user));
         if (body.mediaHref != null && !body.mediaHref.isBlank()) {
             media = mediaService.save(new Media(body.mediaHref, user));
         }
-
         Game game = resolveGame(body, media);
         if (game == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -83,6 +84,33 @@ public class ListingController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ListingResponse.fromListing(saved));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Listing> getListingById(@PathVariable Integer id) {
+        Listing listing = listingService.findByListingId(id);
+        return ResponseEntity.ok(listing);
+    }
+
+
+    @GetMapping("/game/{gameId}")
+    public ResponseEntity<List<Listing>> getListingsByGameId(
+            @PathVariable Integer gameId,
+            HttpServletRequest request) {
+
+        // Get current user from custom method
+        User currentUser = getAuthenticatedUser(request);
+        if (currentUser == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+        }
+
+        // Fetch listings for game excluding current user
+        List<Listing> listings = listingService.findAllByGameIdExcludingUser(gameId, currentUser);
+        System.out.println("listings size: " + listings.size());
+
+        return ResponseEntity.ok(listings);
+    }
+
+
 
     private Game resolveGame(ListingCreateRequest body, Media media) {
         if (body.gameId != null) {

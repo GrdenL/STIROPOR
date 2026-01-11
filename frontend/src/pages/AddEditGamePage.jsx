@@ -1,77 +1,89 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createListing, getMyListings } from "../utils/api";
-
-const mockGames = [
-  "Catan",
-  "Catan: Seafarers",
-  "Catan: Cities & Knights",
-  "Carcassonne",
-  "Cascadia",
-  "Ticket to Ride",
-  "Pandemic",
-  "Azul",
-  "Splendor",
-  "7 Wonders",
-  "Dominion",
-  "Agricola",
-  "Terraforming Mars",
-  "Scythe",
-  "Wingspan",
-  "Gloomhaven",
-  "Root",
-  "Brass: Birmingham",
-  "Spirit Island",
-  "Everdell",
-];
+import { createListing, getMyListings, getAllGames } from "../utils/api";
 
 const blobBaseUrl = import.meta.env.VITE_BLOB_BASE_URL;
 const blobSas = import.meta.env.VITE_BLOB_SAS;
 
 const AddEditGamePage = () => {
+  // Available games from backend for autocomplete
+  const [availableGames, setAvailableGames] = useState([]);
+  const [gamesLoading, setGamesLoading] = useState(true);
+
+  // User's listings
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+
+  // Form state
   const [gameName, setGameName] = useState("");
   const [condition, setCondition] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [editIndex] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const uploadRef = useRef(null);
 
+  // Fetch available games for autocomplete
+  useEffect(() => {
+    const fetchAvailableGames = async () => {
+      try {
+        setGamesLoading(true);
+        const data = await getAllGames();
+        setAvailableGames(data || []);
+      } catch (err) {
+        console.error("Error loading available games:", err);
+        setAvailableGames([]);
+      } finally {
+        setGamesLoading(false);
+      }
+    };
+
+    fetchAvailableGames();
+  }, []);
+
+  // Fetch user's listings
   useEffect(() => {
     let isMounted = true;
+
     const loadListings = async () => {
       setLoading(true);
       setLoadError("");
       const data = await getMyListings();
+
       if (!isMounted) return;
+
       if (!data) {
         setLoadError("Failed to load listings.");
         setGames([]);
         setLoading(false);
         return;
       }
+
       setGames(Array.isArray(data) ? data : []);
       setLoading(false);
     };
 
     loadListings();
+
     return () => {
       isMounted = false;
     };
   }, []);
 
+  // Auto-hide success popup
   useEffect(() => {
     if (!showPopup) return undefined;
     const timer = setTimeout(() => setShowPopup(false), 2500);
     return () => clearTimeout(timer);
   }, [showPopup]);
 
+  // Autocomplete matches
   const matches = useMemo(() => {
     const query = gameName.toLowerCase().trim();
     if (!query) return [];
-    return mockGames.filter((game) => game.toLowerCase().includes(query));
-  }, [gameName]);
+
+    return availableGames
+      .filter((game) => game.gameName.toLowerCase().includes(query))
+      .slice(0, 10); // Limit to 10 suggestions
+  }, [gameName, availableGames]);
 
   const resetForm = () => {
     setGameName("");
@@ -99,8 +111,13 @@ const AddEditGamePage = () => {
     if (!blobBaseUrl || !blobSas) {
       throw new Error("Missing blob storage configuration.");
     }
-    const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+
+    const safeName = `${Date.now()}-${file.name.replace(
+      /[^a-zA-Z0-9._-]/g,
+      "_"
+    )}`;
     const uploadUrl = `${blobBaseUrl}/${safeName}?${blobSas}`;
+
     const response = await fetch(uploadUrl, {
       method: "PUT",
       headers: {
@@ -109,24 +126,39 @@ const AddEditGamePage = () => {
       },
       body: file,
     });
+
     if (!response.ok) {
       throw new Error(`Upload failed with ${response.status}`);
     }
+
     return `${blobBaseUrl}/${safeName}`;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     const trimmedName = gameName.trim();
     if (!trimmedName || !condition) {
       alert("Please fill in all required fields");
       return;
     }
+
+    // Find the game in available games to get the gameId
+    const matchedGame = availableGames.find(
+      (g) => g.gameName.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (!matchedGame) {
+      alert("Please select a valid game from the suggestions");
+      return;
+    }
+
     const payload = {
-      gameName: trimmedName,
+      gameId: matchedGame.gameId,
       condition,
       description: "",
     };
+
     if (selectedImage?.file) {
       try {
         payload.mediaHref = await uploadImage(selectedImage.file);
@@ -150,11 +182,11 @@ const AddEditGamePage = () => {
 
   return (
     <div className="bg-vintage-cream text-vintage-brown font-roboto">
-      {showPopup ? (
+      {showPopup && (
         <div className="fixed top-24 right-6 bg-emerald-500 text-white px-6 py-4 rounded-xl shadow-2xl z-[100]">
           ✓ Listing created successfully!
         </div>
-      ) : null}
+      )}
 
       <section className="bg-vintage-brown text-vintage-cream pt-32 pb-28">
         <div className="max-w-5xl mx-auto text-center px-4 translate-y-8">
@@ -188,17 +220,26 @@ const AddEditGamePage = () => {
                     placeholder="e.g. Catan"
                     autoComplete="off"
                     required
+                    disabled={gamesLoading}
                   />
+                  {gamesLoading && (
+                    <p className="text-xs text-vintage-brown/60 mt-1">
+                      Loading available games...
+                    </p>
+                  )}
                   {matches.length > 0 && (
                     <div className="absolute w-full bg-white border border-vintage-brown/20 rounded-xl mt-1 shadow-lg max-h-64 overflow-y-auto z-[60]">
                       {matches.map((game) => (
                         <button
-                          key={game}
+                          key={game.gameId}
                           type="button"
-                          onClick={() => setGameName(game)}
+                          onClick={() => setGameName(game.gameName)}
                           className="w-full text-left px-4 py-3 hover:bg-vintage-cream transition"
                         >
-                          {game}
+                          <div className="font-medium">{game.gameName}</div>
+                          <div className="text-xs text-vintage-brown/60">
+                            {game.publisher} • {game.yearPublished}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -276,7 +317,7 @@ const AddEditGamePage = () => {
                       event.target.value = "";
                     }}
                   />
-                  {selectedImage ? (
+                  {selectedImage && (
                     <div className="flex gap-4 mt-4 flex-wrap">
                       <div className="relative">
                         <img
@@ -296,13 +337,14 @@ const AddEditGamePage = () => {
                         </button>
                       </div>
                     </div>
-                  ) : null}
+                  )}
                 </div>
 
                 <div className="flex gap-3">
                   <button
                     type="submit"
                     className="flex-1 bg-vintage-accent text-white py-3 rounded-full hover:bg-amber-700 transition"
+                    disabled={gamesLoading}
                   >
                     Create Listing
                   </button>
@@ -361,29 +403,31 @@ const AddEditGamePage = () => {
                 <div className="space-y-4">
                   {games.map((game, index) => (
                     <div
-                      key={`${game.gameName || game.name}-${index}`}
+                      key={`${game.listingId || index}`}
                       className="bg-white p-5 rounded-xl shadow flex justify-between items-center hover:shadow-lg transition"
                     >
                       <div className="flex-1">
                         <strong className="block text-lg">
-                          {game.gameName || game.name}
+                          {game.game?.gameName ||
+                            game.gameName ||
+                            "Unknown Game"}
                         </strong>
                         <span className="text-sm text-vintage-brown/70">
                           {game.condition}
                         </span>
-                        {game.mediaHref ? (
+                        {game.media?.href && (
                           <span className="text-xs text-vintage-accent ml-2">
                             (1 image)
                           </span>
-                        ) : null}
+                        )}
                       </div>
-                      {game.mediaHref ? (
+                      {game.media?.href && (
                         <img
-                          src={game.mediaHref}
-                          alt={game.gameName || "Listing"}
+                          src={game.media.href}
+                          alt={game.game?.gameName || "Listing"}
                           className="w-14 h-14 object-cover rounded-lg border border-vintage-brown/10"
                         />
-                      ) : null}
+                      )}
                     </div>
                   ))}
                 </div>

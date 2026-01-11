@@ -1,27 +1,110 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
-import { mockListings } from "../data/mockListings";
-import { mockGames } from "../data/mockGames";
+import { useState, useEffect } from "react";
+import { getGameById, getListingsByGameId } from "../utils/api";
 import logo from "../assets/logo.png";
 
 const GameDetailsPage = () => {
   const { id } = useParams();
   const gameId = Number(id);
 
-  const game = mockGames.find((g) => g.gameId === gameId);
+  // Fetch game data
+  const [game, setGame] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const listings = mockListings.filter(
-    (l) => l.gameId === gameId && l.isActive
-  );
+  // Fetch listings data
+  const [listings, setListings] = useState([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
 
   const [showListings, setShowListings] = useState(false);
   const [openImage, setOpenImage] = useState({});
 
+  // Fetch game details
+  useEffect(() => {
+    const fetchGame = async () => {
+      try {
+        setLoading(true);
+        const data = await getGameById(gameId);
+        setGame(data);
+      } catch (err) {
+        setError(err.message);
+        console.error("Error loading game:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGame();
+  }, [gameId]);
+
+  // Fetch listings for this game
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setListingsLoading(true);
+        const data = await getListingsByGameId(gameId);
+        // Filter only active listings
+        setListings(data?.filter((l) => l.isActive !== false) || []);
+      } catch (err) {
+        console.error("Error loading listings:", err);
+        setListings([]);
+      } finally {
+        setListingsLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, [gameId]);
+
+  const toggleImage = (listingId) => {
+    setOpenImage((prev) => ({
+      ...prev,
+      [listingId]: !prev[listingId],
+    }));
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-vintage-cream min-h-screen py-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-vintage-brown text-xl">Loading game details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-vintage-cream min-h-screen py-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-red-600 text-xl">Error: {error}</p>
+          <Link
+            to="/games"
+            className="text-sm text-vintage-accent hover:underline mt-4 inline-block"
+          >
+            ← Back to games
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Game not found
   if (!game) {
     return (
-      <p className="text-center mt-10 text-vintage-brown">
-        Game not found.
-      </p>
+      <div className="bg-vintage-cream min-h-screen py-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-vintage-brown">Game not found.</p>
+          <Link
+            to="/games"
+            className="text-sm text-vintage-accent hover:underline mt-4 inline-block"
+          >
+            ← Back to games
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -44,13 +127,6 @@ const GameDetailsPage = () => {
       : game.complexity === 3
       ? "text-orange-600"
       : "text-red-600";
-
-  const toggleImage = (listingId) => {
-    setOpenImage((prev) => ({
-      ...prev,
-      [listingId]: !prev[listingId],
-    }));
-  };
 
   return (
     <div className="bg-vintage-cream min-h-screen py-16 px-4">
@@ -96,24 +172,24 @@ const GameDetailsPage = () => {
               </p>
               <p>
                 <strong>Genres:</strong>{" "}
-                {game.genres.map((g) => g.genreName).join(", ")}
+                {game.genres?.map((g) => g.genreName).join(", ")}
               </p>
             </div>
 
             {/* VIEW LISTINGS BUTTON */}
             <button
-              disabled={!hasListings}
-              onClick={() =>
-                hasListings && setShowListings((prev) => !prev)
-              }
+              disabled={!hasListings || listingsLoading}
+              onClick={() => hasListings && setShowListings((prev) => !prev)}
               className={`mt-6 px-6 py-3 rounded-full text-white transition
                 ${
-                  hasListings
+                  hasListings && !listingsLoading
                     ? "bg-vintage-accent hover:bg-amber-700"
                     : "bg-gray-300 cursor-not-allowed"
                 }`}
             >
-              {hasListings
+              {listingsLoading
+                ? "Loading listings..."
+                : hasListings
                 ? `View listings (${listings.length})`
                 : "No listings available"}
             </button>
@@ -129,14 +205,20 @@ const GameDetailsPage = () => {
                     <div className="flex justify-between items-center">
                       <div className="text-sm text-vintage-brown">
                         <p className="font-semibold">
-                          {listing.owner.username}
+                          {listing.owner?.username ||
+                            listing.user?.username ||
+                            "Unknown User"}
                         </p>
                         <p>
-                          {listing.owner.town}, {listing.owner.country}
+                          {listing.owner?.town?.townName ||
+                            listing.user?.town?.townName ||
+                            "Unknown"}
+                          ,{" "}
+                          {listing.owner?.town?.country?.countryName ||
+                            listing.user?.town?.country?.countryName ||
+                            "Unknown"}
                         </p>
-                        <p className="italic">
-                          Condition: {listing.condition}
-                        </p>
+                        <p className="italic">Condition: {listing.condition}</p>
                       </div>
 
                       <div className="flex gap-2">
