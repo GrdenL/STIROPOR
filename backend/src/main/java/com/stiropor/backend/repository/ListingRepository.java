@@ -16,6 +16,7 @@ public interface ListingRepository extends JpaRepository<Listing, Integer> {
     List<Listing> findAllByGame(Game game);
     List<Listing> findAllByUser(User user);
     List<Listing> findAllByUserAndGame(User user, Game game);
+    List<Listing> findAllByGame_GameId(Integer gameId);
     List<Listing> findAllByGame_GameIdAndUserNot(Integer gameId, User user);
     @Transactional
     void deleteByListingId(Integer id);

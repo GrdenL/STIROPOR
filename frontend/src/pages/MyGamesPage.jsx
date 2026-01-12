@@ -236,8 +236,17 @@ const MyGamesPage = () => {
                 <div
                   key={game.listingId ?? game.gameName}
                   className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-pointer group relative"
-                  onClick={() => navigate(`/games/${game.listingId}`)}
+                  onClick={() => {
+                    const detailId =
+                      game.gameId ?? game.game?.gameId ?? game.listingId;
+                    if (detailId !== undefined && detailId !== null) {
+                      navigate(`/games/${detailId}`);
+                    }
+                  }}
                 >
+                  <span className="absolute top-3 right-3 text-xs text-vintage-brown/70 bg-vintage-cream px-2 py-1 rounded-full border border-vintage-brown/10">
+                    Moj listing
+                  </span>
                   <div className="h-40 bg-vintage-cream rounded-xl mb-4 flex items-center justify-center overflow-hidden border border-vintage-brown/10">
                     {game.mediaHref ? (
                       <img

@@ -109,8 +109,8 @@ public class ListingController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
         }
 
-        // Fetch listings for game excluding current user
-        List<Listing> listings = listingService.findAllByGameIdExcludingUser(gameId, currentUser);
+        // Fetch listings for game (including current user)
+        List<Listing> listings = listingService.findAllByGameId(gameId);
         System.out.println("listings size: " + listings.size());
 
         return ResponseEntity.ok(listings);

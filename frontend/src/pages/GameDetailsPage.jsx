@@ -2,10 +2,21 @@ import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getGameById, getListingsByGameId } from "../utils/api";
 import logo from "../assets/logo.png";
+import { useAuth } from "../context/AuthContext";
+
+const resolveGameImage = (game) => {
+  const name = game?.gameName?.toLowerCase().trim();
+  if (!name) {
+    return logo;
+  }
+  const slug = name.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return slug ? `/images/games/${slug}.jpg` : logo;
+};
 
 const GameDetailsPage = () => {
   const { id } = useParams();
   const gameId = Number(id);
+  const { user } = useAuth();
 
   // Fetch game data
   const [game, setGame] = useState(null);
@@ -127,6 +138,7 @@ const GameDetailsPage = () => {
       : game.complexity === 3
       ? "text-orange-600"
       : "text-red-600";
+  const gameImage = resolveGameImage(game);
 
   return (
     <div className="bg-vintage-cream min-h-screen py-16 px-4">
@@ -141,7 +153,7 @@ const GameDetailsPage = () => {
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* GAME IMAGE */}
           <img
-            src={game.media?.href}
+            src={gameImage}
             alt={game.gameName}
             onError={(e) => (e.target.src = logo)}
             className="rounded-xl shadow-md"
@@ -197,60 +209,80 @@ const GameDetailsPage = () => {
             {/* LISTINGS */}
             {hasListings && showListings && (
               <div className="mt-6 space-y-4 max-h-96 overflow-y-auto pr-2">
-                {listings.map((listing) => (
-                  <div
-                    key={listing.listingId}
-                    className="border rounded-lg p-4 bg-white shadow-sm space-y-3"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm text-vintage-brown">
-                        <p className="font-semibold">
-                          {listing.owner?.username ||
-                            listing.user?.username ||
-                            "Unknown User"}
-                        </p>
-                        <p>
-                          {listing.owner?.town?.townName ||
-                            listing.user?.town?.townName ||
-                            "Unknown"}
-                          ,{" "}
-                          {listing.owner?.town?.country?.countryName ||
-                            listing.user?.town?.country?.countryName ||
-                            "Unknown"}
-                        </p>
-                        <p className="italic">Condition: {listing.condition}</p>
+                {listings.map((listing) => {
+                  const listingUserId =
+                    listing.user?.userId ?? listing.owner?.userId;
+                  const isOwnListing =
+                    listingUserId !== undefined &&
+                    user?.userId !== undefined &&
+                    Number(listingUserId) === Number(user.userId);
+
+                  return (
+                    <div
+                      key={listing.listingId}
+                      className="border rounded-lg p-4 bg-white shadow-sm space-y-3"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-vintage-brown">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">
+                              {listing.owner?.username ||
+                                listing.user?.username ||
+                                "Unknown User"}
+                            </p>
+                            {isOwnListing && (
+                              <span className="text-xs text-vintage-brown/60 bg-vintage-cream px-2 py-1 rounded-full border border-vintage-brown/10">
+                                Moj listing
+                              </span>
+                            )}
+                          </div>
+                          <p>
+                            {listing.owner?.town?.townName ||
+                              listing.user?.town?.townName ||
+                              "Unknown"}
+                            ,{" "}
+                            {listing.owner?.town?.country?.countryName ||
+                              listing.user?.town?.country?.countryName ||
+                              "Unknown"}
+                          </p>
+                          <p className="italic">
+                            Condition: {listing.condition}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => toggleImage(listing.listingId)}
+                            className="text-sm border border-vintage-accent text-vintage-accent px-3 py-2 rounded-full hover:bg-vintage-accent hover:text-white transition"
+                          >
+                            {openImage[listing.listingId]
+                              ? "Hide image"
+                              : "Show image"}
+                          </button>
+
+                          {!isOwnListing && (
+                            <Link
+                              to={`/offer/${listing.listingId}`}
+                              className="text-sm bg-vintage-accent text-white px-4 py-2 rounded-full hover:bg-amber-700"
+                            >
+                              Offer trade
+                            </Link>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => toggleImage(listing.listingId)}
-                          className="text-sm border border-vintage-accent text-vintage-accent px-3 py-2 rounded-full hover:bg-vintage-accent hover:text-white transition"
-                        >
-                          {openImage[listing.listingId]
-                            ? "Hide image"
-                            : "Show image"}
-                        </button>
-
-                        <Link
-                          to={`/offer/${listing.listingId}`}
-                          className="text-sm bg-vintage-accent text-white px-4 py-2 rounded-full hover:bg-amber-700"
-                        >
-                          Offer trade
-                        </Link>
-                      </div>
+                      {/* SINGLE IMAGE */}
+                      {openImage[listing.listingId] && (
+                        <img
+                          src={listing.media?.href || logo}
+                          alt="Listing"
+                          onError={(e) => (e.target.src = logo)}
+                          className="h-32 w-32 object-cover rounded-lg border"
+                        />
+                      )}
                     </div>
-
-                    {/* SINGLE IMAGE */}
-                    {openImage[listing.listingId] && (
-                      <img
-                        src={listing.media?.href || logo}
-                        alt="Listing"
-                        onError={(e) => (e.target.src = logo)}
-                        className="h-32 w-32 object-cover rounded-lg border"
-                      />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

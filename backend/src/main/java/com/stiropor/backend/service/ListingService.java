@@ -36,6 +36,9 @@ public class ListingService {
     public List<Listing> findAllByGameAndUser(Game game, User user) {
         return listingRepository.findAllByUserAndGame(user, game);
     }
+    public List<Listing> findAllByGameId(Integer gameId) {
+        return listingRepository.findAllByGame_GameId(gameId);
+    }
     public List<Listing> findAllByGameIdExcludingUser(Integer gameId, User user) {
         return listingRepository.findAllByGame_GameIdAndUserNot(gameId, user);
     }
