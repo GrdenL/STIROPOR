@@ -98,7 +98,10 @@ export const getListingById = async (id) => {
 export const createOffer = async (offerData) => {
   console.log(offerData)
   try {
-    const res = await api.post("/offers", offerData);
+    const res = await api.post("/offers", offerData, {
+      withCredentials: true,
+      headers: { 'Content-Type': 'application/json' }
+    });
     return res.data;
   } catch (err) {
     console.error("Create offer failed:", err);
