@@ -22,7 +22,7 @@ public class OfferItem {
     @Column(nullable = false)
     private Integer quantity;
 
-    protected OfferItem() {
+    public OfferItem() {
     }
 
     public OfferItem(Offer offer, Listing listing, Integer quantity) {
