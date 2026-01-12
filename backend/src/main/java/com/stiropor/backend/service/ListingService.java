@@ -4,6 +4,7 @@ import com.stiropor.backend.model.Game;
 import com.stiropor.backend.model.Listing;
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.repository.ListingRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,4 +39,6 @@ public class ListingService {
     public List<Listing> findAllByGameIdExcludingUser(Integer gameId, User user) {
         return listingRepository.findAllByGame_GameIdAndUserNot(gameId, user);
     }
+    @Transactional
+    public void deleteByListingId(Integer id) {listingRepository.deleteByListingId(id); }
 }

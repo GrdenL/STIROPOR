@@ -1,113 +1,192 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  getReceivedOffers,
+  getSentOffers,
+  getListingById,
+  acceptOffer,
+  declineOffer,
+  cancelOffer,
+  getOfferById,
+  updateOfferStatus,
+} from "../utils/api"; // Import your API functions
 
-const mockTrades = [
-  {
-    id: 1,
-    from: "Marko P.",
-    fromInitials: "MP",
-    yourGame: "Catan",
-    yourCondition: "Good",
-    theirGame: "Ticket to Ride",
-    theirCondition: "Good",
-    status: "pending",
-    date: "2 hours ago",
-    partnerEmail: "marko.p@example.com",
-    partnerBio: "Board game enthusiast",
-    location: "Zagreb, Croatia",
-    distance: "5 km",
-  },
-  {
-    id: 2,
-    from: "Ana K.",
-    fromInitials: "AK",
-    yourGame: "Dominion",
-    yourCondition: "Like New",
-    theirGame: "7 Wonders",
-    theirCondition: "Like New",
-    status: "accepted",
-    date: "1 day ago",
-    partnerEmail: "ana.k@example.com",
-    partnerBio: "Strategy game collector",
-    location: "Split, Croatia",
-    distance: "12 km",
-  },
-  {
-    id: 3,
-    from: "Ivan M.",
-    fromInitials: "IM",
-    yourGame: "Pandemic",
-    yourCondition: "Good",
-    theirGame: "Azul",
-    theirCondition: "Good",
-    status: "pending",
-    date: "3 hours ago",
-    partnerEmail: "ivan.m@example.com",
-    partnerBio: "Casual gamer",
-    location: "Rijeka, Croatia",
-    distance: "8 km",
-  },
-  {
-    id: 4,
-    from: "Petra S.",
-    fromInitials: "PS",
-    yourGame: "Splendor",
-    yourCondition: "Very Good",
-    theirGame: "Wingspan",
-    theirCondition: "Very Good",
-    status: "declined",
-    date: "2 days ago",
-    partnerEmail: "petra.s@example.com",
-    partnerBio: "Nature game lover",
-    location: "Osijek, Croatia",
-    distance: "15 km",
-  },
-  {
-    id: 5,
-    from: "Luka B.",
-    fromInitials: "LB",
-    yourGame: "Carcassonne",
-    yourCondition: "Like New",
-    theirGame: "Root",
-    theirCondition: "Like New",
-    status: "pending",
-    date: "5 hours ago",
-    partnerEmail: "luka.b@example.com",
-    partnerBio: "Complex game enthusiast",
-    location: "Zagreb, Croatia",
-    distance: "3 km",
-  },
-  {
-    id: 6,
-    from: "Sara T.",
-    fromInitials: "ST",
-    yourGame: "Codenames",
-    yourCondition: "Good",
-    theirGame: "Dixit",
-    theirCondition: "Very Good",
-    status: "accepted",
-    date: "3 days ago",
-    partnerEmail: "sara.t@example.com",
-    partnerBio: "Party game fan",
-    location: "Zagreb, Croatia",
-    distance: "7 km",
-  },
-];
-
+// Status mapping: 0 = PENDING, 1 = ACCEPTED, 2 = DECLINED, 3 = CANCELLED
 const statusConfig = {
-  pending: { className: "bg-amber-500 text-white", label: "Pending" },
-  accepted: { className: "bg-emerald-500 text-white", label: "Accepted" },
-  declined: { className: "bg-red-500 text-white", label: "Declined" },
+  0: { className: "bg-amber-500 text-white", label: "Pending", key: "PENDING" },
+  1: {
+    className: "bg-emerald-500 text-white",
+    label: "Accepted",
+    key: "ACCEPTED",
+  },
+  2: { className: "bg-red-500 text-white", label: "Declined", key: "DECLINED" },
+  3: {
+    className: "bg-gray-500 text-white",
+    label: "Cancelled",
+    key: "CANCELLED",
+  },
 };
 
 const MyTradesPage = () => {
-  const [trades, setTrades] = useState(mockTrades);
+  const [trades, setTrades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
   const [selectedTrade, setSelectedTrade] = useState(null);
   const [popup, setPopup] = useState(null);
+  const [tradeType, setTradeType] = useState("received"); // "received" or "sent"
+
+  // Fetch trades on mount or when tradeType changes
+  useEffect(() => {
+    fetchTrades();
+  }, [tradeType]);
+
+  const fetchTrades = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      let offersData;
+
+      // Get offers based on type
+      if (tradeType === "received") {
+        offersData = await getReceivedOffers();
+      } else {
+        offersData = await getSentOffers();
+      }
+
+      if (!offersData) {
+        throw new Error("No data returned from API");
+      }
+
+      // Transform API data to component format
+      const transformedData = await Promise.all(
+        offersData.map(async (offer) => {
+          try {
+            // Fetch listing details for the target listing (the one you're receiving/trading for)
+            const targetListing = offer.targetListing
+              ? offer.targetListing
+              : await getListingById(offer.targetListingId);
+
+            // Fetch offered listing details (the one being offered to you)
+            const offeredListing = offer.offeredListing
+              ? offer.offeredListing
+              : await getListingById(offer.offeredListingIds[0]);
+
+            // Determine if this is received or sent trade
+            const isReceived = tradeType === "received";
+            const partner = isReceived ? offer.fromUser : offer.toUser;
+            const yourListing = isReceived ? targetListing : offeredListing;
+            const theirListing = isReceived ? offeredListing : targetListing;
+
+            return {
+              id: offer.id || offer.offerId,
+              from: isReceived
+                ? partner?.username || `User ${offer.fromUserId}`
+                : "You",
+              fromInitials: getInitials(
+                isReceived
+                  ? partner?.username || `User ${offer.fromUserId}`
+                  : "You"
+              ),
+              to: isReceived
+                ? "You"
+                : partner?.username || `User ${offer.toUserId}`,
+              yourGame: yourListing?.game?.name || "Unknown Game",
+              yourCondition: formatCondition(yourListing?.condition),
+              theirGame: theirListing?.game?.name || "Unknown Game",
+              theirCondition: formatCondition(theirListing?.condition),
+              status: offer.status,
+              date: formatDate(offer.createdAt),
+              partnerEmail:
+                partner?.email ||
+                `${partner?.username
+                  ?.toLowerCase()
+                  .replace(" ", ".")}@example.com`,
+              partnerBio: partner?.bio || "Board game enthusiast",
+              location:
+                partner?.location || theirListing?.user?.location || "Unknown",
+              distance: calculateDistance(
+                partner?.location || theirListing?.user?.location
+              ),
+              targetListingId: offer.targetListingId,
+              offeredListingIds: offer.offeredListingIds,
+              fromUserId: offer.fromUserId,
+              toUserId: offer.toUserId,
+              message: offer.message || "No message provided",
+              isReceived: isReceived,
+              partner: partner,
+            };
+          } catch (error) {
+            console.error(
+              `Error processing offer ${offer.id || offer.offerId}:`,
+              error
+            );
+            return null;
+          }
+        })
+      );
+
+      // Filter out any null values from failed transformations
+      setTrades(transformedData.filter((trade) => trade !== null));
+    } catch (err) {
+      console.error("Failed to fetch trades:", err);
+      setError("Failed to load trades. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "??";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const formatCondition = (condition) => {
+    const conditionMap = {
+      LIKE_NEW: "Like New",
+      VERY_GOOD: "Very Good",
+      GOOD: "Good",
+      ACCEPTABLE: "Acceptable",
+    };
+    return conditionMap[condition] || condition || "Unknown";
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Unknown date";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffHours < 1) return "Just now";
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays === 1) return "1 day ago";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const calculateDistance = (location) => {
+    if (!location) return "Unknown distance";
+    // Placeholder - you can implement actual distance calculation
+    const distances = ["3 km", "5 km", "7 km", "8 km", "12 km", "15 km"];
+    return distances[Math.floor(Math.random() * distances.length)];
+  };
 
   const filteredTrades = useMemo(() => {
-    if (filter === "all") return trades;
-    return trades.filter((trade) => trade.status === filter);
+    let filtered = trades;
+
+    if (filter !== "all") {
+      filtered = trades.filter((trade) => trade.status === filter);
+    }
+
+    // Show sent trades as they are, received trades as they are
+    return filtered;
   }, [filter, trades]);
 
   useEffect(() => {
@@ -116,11 +195,145 @@ const MyTradesPage = () => {
     return () => clearTimeout(timer);
   }, [popup]);
 
-  const updateTradeStatus = (id, status) => {
-    setTrades((prev) =>
-      prev.map((trade) => (trade.id === id ? { ...trade, status } : trade))
-    );
+  const handleAcceptOffer = async (offerId) => {
+    try {
+      await acceptOffer(offerId);
+      // Refresh trades after accepting
+      fetchTrades();
+      setPopup({
+        message: "Trade accepted successfully!",
+        color: "bg-emerald-500",
+      });
+      if (selectedTrade?.id === offerId) {
+        setSelectedTrade(null);
+      }
+    } catch (err) {
+      console.error("Failed to accept offer:", err);
+      setPopup({
+        message: "Failed to accept trade. Please try again.",
+        color: "bg-red-500",
+      });
+    }
   };
+
+  const handleDeclineOffer = async (offerId) => {
+    try {
+      await declineOffer(offerId);
+      // Refresh trades after declining
+      fetchTrades();
+      setPopup({
+        message: "Trade declined successfully!",
+        color: "bg-red-500",
+      });
+      if (selectedTrade?.id === offerId) {
+        setSelectedTrade(null);
+      }
+    } catch (err) {
+      console.error("Failed to decline offer:", err);
+      setPopup({
+        message: "Failed to decline trade. Please try again.",
+        color: "bg-red-500",
+      });
+    }
+  };
+
+  const handleCancelOffer = async (offerId) => {
+    try {
+      await cancelOffer(offerId);
+      // Refresh trades after cancelling
+      fetchTrades();
+      setPopup({
+        message: "Trade cancelled successfully!",
+        color: "bg-gray-500",
+      });
+      if (selectedTrade?.id === offerId) {
+        setSelectedTrade(null);
+      }
+    } catch (err) {
+      console.error("Failed to cancel offer:", err);
+      setPopup({
+        message: "Failed to cancel trade. Please try again.",
+        color: "bg-red-500",
+      });
+    }
+  };
+
+  const handleUpdateOfferStatus = async (offerId, status) => {
+    try {
+      await updateOfferStatus(offerId, status);
+      // Refresh trades after updating status
+      fetchTrades();
+      setPopup({
+        message: "Trade status updated successfully!",
+        color: "bg-emerald-500",
+      });
+    } catch (err) {
+      console.error("Failed to update offer status:", err);
+      setPopup({
+        message: "Failed to update trade status. Please try again.",
+        color: "bg-red-500",
+      });
+    }
+  };
+
+  const handleViewTradeDetails = async (tradeId) => {
+    try {
+      const offerDetails = await getOfferById(tradeId);
+      const trade = trades.find((t) => t.id === tradeId);
+      if (trade) {
+        setSelectedTrade({
+          ...trade,
+          details: offerDetails,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch trade details:", err);
+      setPopup({
+        message: "Failed to load trade details. Please try again.",
+        color: "bg-red-500",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-vintage-cream min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-vintage-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-vintage-brown">Loading trades...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-vintage-cream min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <svg
+            className="w-16 h-16 text-red-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p className="text-vintage-brown mb-4">{error}</p>
+          <button
+            onClick={fetchTrades}
+            className="bg-vintage-accent text-white px-6 py-2 rounded-full hover:bg-amber-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-vintage-cream text-vintage-brown font-roboto">
@@ -146,35 +359,74 @@ const MyTradesPage = () => {
 
       <section className="py-12 border-b border-vintage-brown/10">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-wrap gap-3">
-            {["all", "pending", "accepted", "declined"].map((key) => (
+          <div className="flex flex-col gap-4">
+            {/* Trade Type Toggle */}
+            <div className="flex gap-3 mb-4">
               <button
-                key={key}
                 type="button"
-                onClick={() => setFilter(key)}
+                onClick={() => setTradeType("received")}
                 className={`py-2 px-6 rounded-full transition border-2 ${
-                  filter === key
-                    ? key === "pending"
-                      ? "bg-amber-500 text-white border-amber-500"
-                      : key === "accepted"
-                      ? "bg-emerald-500 text-white border-emerald-500"
-                      : key === "declined"
-                      ? "bg-red-500 text-white border-red-500"
-                      : "bg-vintage-accent text-white border-vintage-accent"
-                    : key === "pending"
-                    ? "border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-white"
-                    : key === "accepted"
-                    ? "border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
-                    : key === "declined"
-                    ? "border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  tradeType === "received"
+                    ? "bg-vintage-accent text-white border-vintage-accent"
                     : "border-vintage-accent text-vintage-accent hover:bg-vintage-accent hover:text-white"
                 }`}
               >
-                {key === "all"
-                  ? "All Trades"
-                  : `${key[0].toUpperCase()}${key.slice(1)}`}
+                Received Offers
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setTradeType("sent")}
+                className={`py-2 px-6 rounded-full transition border-2 ${
+                  tradeType === "sent"
+                    ? "bg-vintage-accent text-white border-vintage-accent"
+                    : "border-vintage-accent text-vintage-accent hover:bg-vintage-accent hover:text-white"
+                }`}
+              >
+                Sent Offers
+              </button>
+            </div>
+
+            {/* Status Filters */}
+            <div className="flex flex-wrap gap-3">
+              {["all", 0, 1, 2, 3].map((key) => {
+                const isActive = filter === key;
+                const config =
+                  typeof key === "number" ? statusConfig[key] : null;
+                const displayLabel =
+                  key === "all" ? "All Trades" : config?.label || key;
+
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFilter(key)}
+                    className={`py-2 px-6 rounded-full transition border-2 ${
+                      isActive
+                        ? key === 0
+                          ? "bg-amber-500 text-white border-amber-500"
+                          : key === 1
+                          ? "bg-emerald-500 text-white border-emerald-500"
+                          : key === 2
+                          ? "bg-red-500 text-white border-red-500"
+                          : key === 3
+                          ? "bg-gray-500 text-white border-gray-500"
+                          : "bg-vintage-accent text-white border-vintage-accent"
+                        : key === 0
+                        ? "border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-white"
+                        : key === 1
+                        ? "border-emerald-500 text-emerald-500 hover:bg-emerald-500 hover:text-white"
+                        : key === 2
+                        ? "border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                        : key === 3
+                        ? "border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
+                        : "border-vintage-accent text-vintage-accent hover:bg-vintage-accent hover:text-white"
+                    }`}
+                  >
+                    {displayLabel}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
@@ -183,7 +435,9 @@ const MyTradesPage = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="mb-6">
             <h2 className="text-2xl font-playfair font-bold">
-              {filteredTrades.length} Trades
+              {filteredTrades.length} Trade
+              {filteredTrades.length !== 1 ? "s" : ""} (
+              {tradeType === "received" ? "Received" : "Sent"})
             </h2>
           </div>
 
@@ -204,13 +458,17 @@ const MyTradesPage = () => {
               </svg>
               <p className="text-vintage-brown/40 text-lg">No trades found</p>
               <p className="text-sm text-vintage-brown/30 mt-1">
-                Try adjusting your filters!
+                {tradeType === "received"
+                  ? "You haven't received any trade offers yet."
+                  : "You haven't sent any trade offers yet."}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTrades.map((trade) => {
                 const status = statusConfig[trade.status];
+                const isReceived = trade.isReceived;
+
                 return (
                   <div
                     key={trade.id}
@@ -219,10 +477,13 @@ const MyTradesPage = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold text-sm">
-                          {trade.fromInitials}
+                          {isReceived ? trade.fromInitials : "You"}
                         </div>
                         <div>
-                          <p className="font-medium">{trade.from}</p>
+                          <p className="font-medium">
+                            {isReceived ? trade.from : "You"} →{" "}
+                            {isReceived ? "You" : trade.to}
+                          </p>
                           <p className="text-xs text-vintage-brown/60">
                             {trade.date}
                           </p>
@@ -237,13 +498,15 @@ const MyTradesPage = () => {
 
                     <div className="bg-vintage-cream/50 rounded-xl p-4 mb-4">
                       <p className="text-sm mb-2">
-                        <span className="text-vintage-brown/60">For your:</span>{" "}
+                        <span className="text-vintage-brown/60">
+                          {isReceived ? "They want your:" : "You want their:"}
+                        </span>{" "}
                         <span className="font-medium">{trade.yourGame}</span>
                       </p>
                       <div className="border-t border-vintage-brown/10 my-2" />
                       <p className="text-sm">
                         <span className="text-vintage-brown/60">
-                          They offer:
+                          {isReceived ? "They offer:" : "You offer:"}
                         </span>{" "}
                         <span className="font-medium">{trade.theirGame}</span>
                       </p>
@@ -255,45 +518,61 @@ const MyTradesPage = () => {
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setSelectedTrade(trade)}
+                        onClick={() => handleViewTradeDetails(trade.id)}
                         className="view-details flex-1 bg-vintage-accent text-white py-2 rounded-full hover:bg-amber-700 transition text-sm"
                       >
                         View Details
                       </button>
-                      {trade.status === "pending" ? (
-                        <>
+
+                      {/* Action buttons based on trade status and type */}
+                      {trade.status === 0 && // PENDING
+                        (isReceived ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `Accept trade with ${trade.from}?`
+                                  )
+                                ) {
+                                  handleAcceptOffer(trade.id);
+                                }
+                              }}
+                              className="px-4 border border-emerald-500 text-emerald-500 rounded-full hover:bg-emerald-500 hover:text-white transition text-sm"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `Decline trade with ${trade.from}?`
+                                  )
+                                ) {
+                                  handleDeclineOffer(trade.id);
+                                }
+                              }}
+                              className="px-4 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition text-sm"
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          // Sent offers can be cancelled
                           <button
                             type="button"
                             onClick={() => {
-                              if (window.confirm(`Accept trade with ${trade.from}?`)) {
-                                updateTradeStatus(trade.id, "accepted");
-                                setPopup({
-                                  message: "Trade accepted ✔",
-                                  color: "bg-emerald-500",
-                                });
+                              if (window.confirm("Cancel your trade offer?")) {
+                                handleCancelOffer(trade.id);
                               }
                             }}
-                            className="px-4 border border-emerald-500 text-emerald-500 rounded-full hover:bg-emerald-500 hover:text-white transition text-sm"
+                            className="px-4 border border-gray-500 text-gray-500 rounded-full hover:bg-gray-500 hover:text-white transition text-sm"
                           >
-                            ✓
+                            Cancel
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (window.confirm(`Decline trade with ${trade.from}?`)) {
-                                updateTradeStatus(trade.id, "declined");
-                                setPopup({
-                                  message: "Trade declined",
-                                  color: "bg-red-500",
-                                });
-                              }
-                            }}
-                            className="px-4 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition text-sm"
-                          >
-                            ✕
-                          </button>
-                        </>
-                      ) : null}
+                        ))}
                     </div>
                   </div>
                 );
@@ -307,7 +586,9 @@ const MyTradesPage = () => {
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-vintage-brown/10 p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-playfair font-bold">Trade Details</h2>
+              <h2 className="text-2xl font-playfair font-bold">
+                Trade Details
+              </h2>
               <button
                 type="button"
                 onClick={() => setSelectedTrade(null)}
@@ -344,17 +625,21 @@ const MyTradesPage = () => {
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-vintage-brown/60">
-                    Trade Partner
+                  <p className="text-sm text-vintage-brown/60">Trade Partner</p>
+                  <p className="font-medium">
+                    {selectedTrade.isReceived
+                      ? selectedTrade.from
+                      : selectedTrade.to}
                   </p>
-                  <p className="font-medium">{selectedTrade.from}</p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-vintage-cream/50 rounded-xl p-4">
                   <p className="text-sm font-medium text-vintage-brown/60 mb-3">
-                    They are Receiving
+                    {selectedTrade.isReceived
+                      ? "They want your:"
+                      : "You want their:"}
                   </p>
                   <h4 className="text-lg font-medium mb-2">
                     {selectedTrade.yourGame}
@@ -368,7 +653,7 @@ const MyTradesPage = () => {
                 </div>
                 <div className="bg-vintage-accent/10 rounded-xl p-4">
                   <p className="text-sm font-medium text-vintage-brown/60 mb-3">
-                    You are Receiving
+                    {selectedTrade.isReceived ? "You receive:" : "You offer:"}
                   </p>
                   <h4 className="text-lg font-medium mb-2">
                     {selectedTrade.theirGame}
@@ -381,6 +666,19 @@ const MyTradesPage = () => {
                   </p>
                 </div>
               </div>
+
+              {selectedTrade.message && (
+                <div className="bg-white border border-vintage-brown/10 rounded-xl p-4 mb-6">
+                  <p className="text-sm font-medium text-vintage-brown/60 mb-2">
+                    {selectedTrade.isReceived
+                      ? "Message from trader:"
+                      : "Your message:"}
+                  </p>
+                  <p className="text-sm text-vintage-brown/70">
+                    {selectedTrade.message}
+                  </p>
+                </div>
+              )}
 
               <div className="bg-white border border-vintage-brown/10 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -418,10 +716,14 @@ const MyTradesPage = () => {
               <div className="bg-white border border-vintage-brown/10 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold">
-                    {selectedTrade.fromInitials}
+                    {selectedTrade.isReceived
+                      ? selectedTrade.fromInitials
+                      : "You"}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">{selectedTrade.from}</p>
+                    <p className="font-medium">
+                      {selectedTrade.isReceived ? selectedTrade.from : "You"}
+                    </p>
                     <a
                       href={`mailto:${selectedTrade.partnerEmail}`}
                       className="text-sm text-vintage-accent hover:text-amber-700 flex items-center gap-1 mt-1"
@@ -452,33 +754,40 @@ const MyTradesPage = () => {
                 <p className="text-sm text-vintage-brown/60">Status</p>
                 <p
                   className={`text-lg font-medium mt-1 ${
-                    selectedTrade.status === "pending"
+                    selectedTrade.status === 0
                       ? "text-amber-500"
-                      : selectedTrade.status === "accepted"
+                      : selectedTrade.status === 1
                       ? "text-emerald-500"
-                      : "text-red-500"
+                      : selectedTrade.status === 2
+                      ? "text-red-500"
+                      : "text-gray-500"
                   }`}
                 >
-                  {selectedTrade.status === "pending"
-                    ? "Pending your response"
-                    : selectedTrade.status === "accepted"
+                  {selectedTrade.status === 0
+                    ? selectedTrade.isReceived
+                      ? "Pending your response"
+                      : "Waiting for response"
+                    : selectedTrade.status === 1
                     ? "Trade accepted"
-                    : "Trade declined"}
+                    : selectedTrade.status === 2
+                    ? "Trade declined"
+                    : "Trade cancelled"}
                 </p>
               </div>
 
               <div className="flex gap-3">
-                {selectedTrade.status === "pending" ? (
+                {selectedTrade.status === 0 && selectedTrade.isReceived ? (
+                  // Received pending offers can be accepted/declined
                   <>
                     <button
                       type="button"
                       onClick={() => {
-                        if (window.confirm(`Accept trade with ${selectedTrade.from}?`)) {
-                          updateTradeStatus(selectedTrade.id, "accepted");
-                          setPopup({
-                            message: "Trade accepted ✔",
-                            color: "bg-emerald-500",
-                          });
+                        if (
+                          window.confirm(
+                            `Accept trade with ${selectedTrade.from}?`
+                          )
+                        ) {
+                          handleAcceptOffer(selectedTrade.id);
                           setSelectedTrade(null);
                         }
                       }}
@@ -489,12 +798,12 @@ const MyTradesPage = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (window.confirm(`Decline trade with ${selectedTrade.from}?`)) {
-                          updateTradeStatus(selectedTrade.id, "declined");
-                          setPopup({
-                            message: "Trade declined",
-                            color: "bg-red-500",
-                          });
+                        if (
+                          window.confirm(
+                            `Decline trade with ${selectedTrade.from}?`
+                          )
+                        ) {
+                          handleDeclineOffer(selectedTrade.id);
                           setSelectedTrade(null);
                         }
                       }}
@@ -503,7 +812,22 @@ const MyTradesPage = () => {
                       Decline Trade
                     </button>
                   </>
+                ) : selectedTrade.status === 0 && !selectedTrade.isReceived ? (
+                  // Sent pending offers can be cancelled
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("Cancel your trade offer?")) {
+                        handleCancelOffer(selectedTrade.id);
+                        setSelectedTrade(null);
+                      }
+                    }}
+                    className="w-full border-2 border-gray-500 text-gray-500 py-3 rounded-full hover:bg-gray-500 hover:text-white transition"
+                  >
+                    Cancel Trade Offer
+                  </button>
                 ) : (
+                  // Completed trades just show close button
                   <button
                     type="button"
                     onClick={() => setSelectedTrade(null)}

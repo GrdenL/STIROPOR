@@ -95,6 +95,18 @@ export const getListingById = async (id) => {
   }
 };
 
+export const deleteListingById = async (id) => {
+  try {
+    const res = await api.delete(`/listings/${id}`);
+    return res.data;
+  } catch (err) {
+    console.error("Delete listing by id failed:", err);
+    throw err;
+  }
+};
+
+
+// Trade/Offer API functions
 export const createOffer = async (offerData) => {
   console.log(offerData)
   try {
@@ -108,6 +120,104 @@ export const createOffer = async (offerData) => {
     throw err;
   }
 };
+
+export const getMyTrades = async () => {
+  try {
+    const res = await api.get("/offers/me", { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Get my trades failed:", err);
+    return null;
+  }
+};
+
+export const getReceivedOffers = async () => {
+  try {
+    const res = await api.get("/offers/received", { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Get received offers failed:", err);
+    return null;
+  }
+};
+
+export const getSentOffers = async () => {
+  try {
+    const res = await api.get("/offers/sent", { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Get sent offers failed:", err);
+    return null;
+  }
+};
+
+export const updateOfferStatus = async (offerId, status) => {
+  try {
+    // Convert string status to integer: PENDING=0, ACCEPTED=1, DECLINED=2, CANCELLED=3
+    const statusMap = {
+      'PENDING': 0,
+      'ACCEPTED': 1,
+      'DECLINED': 2,
+      'CANCELLED': 3
+    };
+    const statusValue = typeof status === 'string' ? statusMap[status] : status;
+
+    const res = await api.patch(`/offers/${offerId}/status`, null, {
+      params: { status: statusValue },
+      withCredentials: true
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Update offer status failed:", err);
+    throw err;
+  }
+};
+
+export const acceptOffer = async (offerId) => {
+  try {
+    const res = await api.post(`/offers/${offerId}/accept`, null, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Accept offer failed:", err);
+    throw err;
+  }
+};
+
+export const declineOffer = async (offerId) => {
+  try {
+    const res = await api.post(`/offers/${offerId}/decline`, null, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Decline offer failed:", err);
+    throw err;
+  }
+};
+
+export const cancelOffer = async (offerId) => {
+  try {
+    const res = await api.delete(`/offers/${offerId}`, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Cancel offer failed:", err);
+    throw err;
+  }
+};
+
+export const getOfferById = async (offerId) => {
+  try {
+    const res = await api.get(`/offers/${offerId}`, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Get offer by id failed:", err);
+    throw err;
+  }
+};
+
+
+
+
+
+
 
 export const login = async (email, password) => {
   try {

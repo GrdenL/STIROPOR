@@ -3,7 +3,7 @@ package com.stiropor.backend.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "offerItems")
+@Table(name = "offer_items")
 public class OfferItem {
 
     @EmbeddedId

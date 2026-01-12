@@ -91,6 +91,12 @@ public class ListingController {
         return ResponseEntity.ok(listing);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Listing> deleteListingById(@PathVariable Integer id) {
+        listingService.deleteByListingId(id);
+        return ResponseEntity.ok(new Listing());
+    }
+
 
     @GetMapping("/game/{gameId}")
     public ResponseEntity<List<Listing>> getListingsByGameId(

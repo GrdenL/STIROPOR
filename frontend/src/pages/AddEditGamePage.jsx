@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createListing, getMyListings, getAllGames } from "../utils/api";
+import {
+  createListing,
+  getMyListings,
+  getAllGames,
+  deleteListingById,
+} from "../utils/api";
 
 const blobBaseUrl = import.meta.env.VITE_BLOB_BASE_URL;
 const blobSas = import.meta.env.VITE_BLOB_SAS;
@@ -22,6 +27,11 @@ const AddEditGamePage = () => {
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const uploadRef = useRef(null);
   const autocompleteRef = useRef(null);
+
+  // Delete state
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch available games for autocomplete
   useEffect(() => {
@@ -77,6 +87,13 @@ const AddEditGamePage = () => {
     return () => clearTimeout(timer);
   }, [showPopup]);
 
+  // Auto-hide success message
+  useEffect(() => {
+    if (!successMessage) return undefined;
+    const timer = setTimeout(() => setSuccessMessage(""), 3000);
+    return () => clearTimeout(timer);
+  }, [successMessage]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!autocompleteRef.current) return;
@@ -95,8 +112,8 @@ const AddEditGamePage = () => {
     if (!query) return [];
 
     return availableGames
-            .filter((game) => game.gameName.toLowerCase().includes(query))
-            .slice(0, 10); // Limit to 10 suggestions
+      .filter((game) => game.gameName.toLowerCase().includes(query))
+      .slice(0, 10); // Limit to 10 suggestions
   }, [gameName, availableGames]);
 
   const resetForm = () => {
@@ -194,11 +211,55 @@ const AddEditGamePage = () => {
     setShowPopup(true);
   };
 
+  const handleDelete = async (listingId, gameName) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${gameName}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(listingId);
+    setDeleteError("");
+
+    try {
+      const success = await deleteListingById(listingId);
+
+      if (success) {
+        // Remove the deleted listing from state
+        setGames((prevGames) =>
+          prevGames.filter((game) => game.listingId !== listingId)
+        );
+        setSuccessMessage(`"${gameName}" deleted successfully!`);
+      } else {
+        setDeleteError("Failed to delete listing. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting listing:", error);
+      setDeleteError("An error occurred while deleting. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="bg-vintage-cream text-vintage-brown font-roboto">
       {showPopup && (
         <div className="fixed top-24 right-6 bg-emerald-500 text-white px-6 py-4 rounded-xl shadow-2xl z-[100]">
           ✓ Listing created successfully!
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="fixed top-24 right-6 bg-emerald-500 text-white px-6 py-4 rounded-xl shadow-2xl z-[100]">
+          ✓ {successMessage}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="fixed top-24 right-6 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-[100]">
+          ⚠ {deleteError}
         </div>
       )}
 
@@ -427,35 +488,74 @@ const AddEditGamePage = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {games.map((game, index) => (
-                    <div
-                      key={`${game.listingId || index}`}
-                      className="bg-white p-5 rounded-xl shadow flex justify-between items-center hover:shadow-lg transition"
-                    >
-                      <div className="flex-1">
-                        <strong className="block text-lg">
-                          {game.game?.gameName ||
-                            game.gameName ||
-                            "Unknown Game"}
-                        </strong>
-                        <span className="text-sm text-vintage-brown/70">
-                          {game.condition}
-                        </span>
-                        {game.media?.href && (
-                          <span className="text-xs text-vintage-accent ml-2">
-                            (1 image)
+                  {games.map((game, index) => {
+                    const gameName =
+                      game.game?.gameName || game.gameName || "Unknown Game";
+                    const isDeleting = deletingId === game.listingId;
+
+                    return (
+                      <div
+                        key={`${game.listingId || index}`}
+                        className="bg-white p-5 rounded-xl shadow flex justify-between items-center hover:shadow-lg transition"
+                      >
+                        <div className="flex-1">
+                          <strong className="block text-lg">{gameName}</strong>
+                          <span className="text-sm text-vintage-brown/70">
+                            {game.condition}
                           </span>
-                        )}
+                          {game.media?.href && (
+                            <span className="text-xs text-vintage-accent ml-2">
+                              (1 image)
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {game.media?.href && (
+                            <img
+                              src={game.media.href}
+                              alt={gameName}
+                              className="w-14 h-14 object-cover rounded-lg border border-vintage-brown/10"
+                            />
+                          )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleDelete(game.listingId, gameName)
+                            }
+                            disabled={isDeleting}
+                            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isDeleting ? (
+                              <span className="flex items-center gap-2">
+                                <svg
+                                  className="animate-spin h-4 w-4"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                    fill="none"
+                                  />
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  />
+                                </svg>
+                                Deleting...
+                              </span>
+                            ) : (
+                              "Delete"
+                            )}
+                          </button>
+                        </div>
                       </div>
-                      {game.media?.href && (
-                        <img
-                          src={game.media.href}
-                          alt={game.game?.gameName || "Listing"}
-                          className="w-14 h-14 object-cover rounded-lg border border-vintage-brown/10"
-                        />
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

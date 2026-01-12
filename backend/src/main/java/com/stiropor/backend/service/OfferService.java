@@ -85,7 +85,6 @@ public class OfferService {
 
             offeredListings.add(offeredListing);
         }
-        System.out.println("----------------------" + offeredListings.size());
 
         // Create offer
         Offer offer = new Offer();
@@ -95,22 +94,29 @@ public class OfferService {
         offer.setTo_user(toUser);
         offer.setListing(targetListing);
 
-        // Save offer first
+        // Save offer first to get the ID
         Offer savedOffer = offerRepository.save(offer);
-        System.out.println("Saved offer " + savedOffer.getOfferId());
-
-        // Save offer first
-        Offer saveddOffer = offerRepository.save(offer);
 
         // Then create offer items
-        for (Integer listingId : offeredListingIds) {
-            Listing offeredListing = listingRepository.findById(listingId)
-                    .orElseThrow(() -> new IllegalArgumentException("Listing " + listingId + " not found"));
-            OfferItem offerItem = new OfferItem(saveddOffer, offeredListing, 1);
-            offerItemRepository.save(offerItem);
+        List<OfferItem> offerItems = new ArrayList<>();
+        for (Listing offeredListing : offeredListings) {
+            // Use the constructor that sets the composite ID
+            OfferItem offerItem = new OfferItem(savedOffer, offeredListing, 1);
+            offerItems.add(offerItem);
         }
-        System.out.println("---------------------" + mapToResponse(offer, offeredListingIds));
-        return mapToResponse(savedOffer, offeredListingIds);
+
+        // Save all offer items
+        offerItemRepository.saveAll(offerItems);
+
+        // Add items to offer (if you have a bidirectional relationship)
+        // This depends on your Offer entity having a collection of OfferItems
+        // savedOffer.setOfferItems(offerItems);
+
+        List<Integer> offeredListingIdsList = offeredListings.stream()
+                .map(Listing::getListingId)
+                .collect(Collectors.toList());
+
+        return mapToResponse(savedOffer, offeredListingIdsList);
     }
 
     public OfferResponse getOfferById(Integer offerId, Integer currentUserId) {
@@ -131,6 +137,174 @@ public class OfferService {
                 .collect(Collectors.toList());
 
         return mapToResponse(offer, offeredListingIds);
+    }
+
+    /**
+     * Get all offers received by a user (offers for their listings)
+     */
+    public List<OfferResponse> getReceivedOffers(Integer userId) {
+        User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        // Find all offers where this user is the recipient (to_user)
+        List<Offer> offers = offerRepository.findByToUser(user);
+
+        return offers.stream()
+                .map(offer -> {
+                    List<Integer> offeredListingIds = offerItemRepository.findByOffer(offer)
+                            .stream()
+                            .map(item -> item.getListing().getListingId())
+                            .collect(Collectors.toList());
+                    return mapToResponse(offer, offeredListingIds);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all offers sent by a user (offers they created)
+     */
+    public List<OfferResponse> getSentOffers(Integer userId) {
+        User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        // Find all offers where this user is the sender (from_user)
+        List<Offer> offers = offerRepository.findByFromUser(user);
+
+        return offers.stream()
+                .map(offer -> {
+                    List<Integer> offeredListingIds = offerItemRepository.findByOffer(offer)
+                            .stream()
+                            .map(item -> item.getListing().getListingId())
+                            .collect(Collectors.toList());
+                    return mapToResponse(offer, offeredListingIds);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all offers related to a user (both sent and received)
+     */
+    public List<OfferResponse> getAllUserOffers(Integer userId) {
+        User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        // Find all offers where user is either sender or recipient
+        List<Offer> sentOffers = offerRepository.findByFromUser(user);
+        List<Offer> receivedOffers = offerRepository.findByToUser(user);
+
+        // Combine both lists
+        List<Offer> allOffers = new ArrayList<>(sentOffers);
+        for (Offer offer : receivedOffers) {
+            if (!allOffers.contains(offer)) {
+                allOffers.add(offer);
+            }
+        }
+
+        // Sort by creation date (newest first)
+        allOffers.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+        return allOffers.stream()
+                .map(offer -> {
+                    List<Integer> offeredListingIds = offerItemRepository.findByOffer(offer)
+                            .stream()
+                            .map(item -> item.getListing().getListingId())
+                            .collect(Collectors.toList());
+                    return mapToResponse(offer, offeredListingIds);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Update the status of an offer
+     * Status values: 0 = PENDING, 1 = ACCEPTED, 2 = DECLINED, 3 = CANCELLED
+     */
+    @Transactional
+    public OfferResponse updateOfferStatus(Integer offerId, Integer newStatus, Integer currentUserId) {
+        Offer offer = offerRepository.findById(offerId)
+                .orElseThrow(() -> new IllegalArgumentException("Offer not found"));
+
+        Integer fromUserId = offer.getFrom_user().getUserId();
+        Integer toUserId = offer.getTo_user().getUserId();
+
+        // Validate status value
+        if (newStatus < 0 || newStatus > 3) {
+            throw new IllegalArgumentException("Invalid status. Must be 0 (PENDING), 1 (ACCEPTED), 2 (DECLINED), or 3 (CANCELLED)");
+        }
+
+        // Check permissions based on the status change
+        if (newStatus == 1 || newStatus == 2) {
+            // Only the recipient can accept (1) or decline (2)
+            if (!currentUserId.equals(toUserId)) {
+                throw new SecurityException("Only the listing owner can accept or decline offers");
+            }
+        } else if (newStatus == 3) {
+            // Only the offer creator can cancel (3)
+            if (!currentUserId.equals(fromUserId)) {
+                throw new SecurityException("Only the offer creator can cancel the offer");
+            }
+        }
+
+        // Validate status transition - can only modify pending offers
+        if (offer.getOffer_status() != 0) {
+            throw new IllegalArgumentException("Can only modify pending offers");
+        }
+
+        offer.setOffer_status(newStatus);
+
+        // If accepted, mark listings as inactive
+        if (newStatus == 1) {
+            // Mark target listing as inactive
+            Listing targetListing = offer.getListing();
+            targetListing.setIsActive(false);
+            listingRepository.save(targetListing);
+
+            // Mark all offered listings as inactive
+            List<OfferItem> offerItems = offerItemRepository.findByOffer(offer);
+            for (OfferItem item : offerItems) {
+                Listing offeredListing = item.getListing();
+                offeredListing.setIsActive(false);
+                listingRepository.save(offeredListing);
+            }
+        }
+
+        Offer updatedOffer = offerRepository.save(offer);
+
+        List<Integer> offeredListingIds = offerItemRepository.findByOffer(updatedOffer)
+                .stream()
+                .map(item -> item.getListing().getListingId())
+                .collect(Collectors.toList());
+
+        return mapToResponse(updatedOffer, offeredListingIds);
+    }
+
+    /**
+     * Cancel an offer (convenience method)
+     */
+    @Transactional
+    public void cancelOffer(Integer offerId, Integer currentUserId) {
+        updateOfferStatus(offerId, 3, currentUserId); // 3 = CANCELLED
+    }
+
+    /**
+     * Accept an offer (convenience method)
+     */
+    @Transactional
+    public OfferResponse acceptOffer(Integer offerId, Integer currentUserId) {
+        return updateOfferStatus(offerId, 1, currentUserId); // 1 = ACCEPTED
+    }
+
+    /**
+     * Decline an offer (convenience method)
+     */
+    @Transactional
+    public OfferResponse declineOffer(Integer offerId, Integer currentUserId) {
+        return updateOfferStatus(offerId, 2, currentUserId); // 2 = DECLINED
     }
 
     private OfferResponse mapToResponse(Offer offer, List<Integer> offeredListingIds) {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getMyListings } from "../utils/api";
+import { getMyListings, deleteListingById } from "../utils/api";
 
 const conditionBadges = {
   New: "bg-green-100 text-green-700",
@@ -18,6 +18,8 @@ const MyGamesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -42,12 +44,43 @@ const MyGamesPage = () => {
     };
   }, []);
 
+  const handleDelete = async (listingId, e) => {
+    e.stopPropagation();
+
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this listing? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(listingId);
+    setDeleteError("");
+
+    try {
+      const success = await deleteListingById(listingId);
+
+      if (success) {
+        // Remove the deleted listing from state
+        setListings((prevListings) =>
+          prevListings.filter((listing) => listing.listingId !== listingId)
+        );
+      } else {
+        setDeleteError("Failed to delete listing. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting listing:", error);
+      setDeleteError("An error occurred while deleting. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const filteredGames = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const filtered = listings.filter((game) => {
-      const matchesSearch = (game.gameName || "")
-        .toLowerCase()
-        .includes(term);
+      const matchesSearch = (game.gameName || "").toLowerCase().includes(term);
       const matchesCondition = !condition || game.condition === condition;
       return matchesSearch && matchesCondition;
     });
@@ -164,6 +197,11 @@ const MyGamesPage = () => {
             <h2 className="text-2xl font-playfair font-bold">
               {filteredGames.length} Games in Collection
             </h2>
+            {deleteError && (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                {deleteError}
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -171,9 +209,7 @@ const MyGamesPage = () => {
               Loading your listings...
             </div>
           ) : loadError ? (
-            <div className="text-center py-16 text-red-600">
-              {loadError}
-            </div>
+            <div className="text-center py-16 text-red-600">{loadError}</div>
           ) : filteredGames.length === 0 ? (
             <div className="text-center py-16">
               <svg
@@ -199,8 +235,8 @@ const MyGamesPage = () => {
               {filteredGames.map((game) => (
                 <div
                   key={game.listingId ?? game.gameName}
-                  className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-pointer group"
-                  onClick={() => navigate("/games")}
+                  className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-pointer group relative"
+                  onClick={() => navigate(`/games/${game.listingId}`)}
                 >
                   <div className="h-40 bg-vintage-cream rounded-xl mb-4 flex items-center justify-center overflow-hidden border border-vintage-brown/10">
                     {game.mediaHref ? (
@@ -222,21 +258,34 @@ const MyGamesPage = () => {
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-xs px-3 py-1 rounded-full ${
-                        conditionBadges[game.condition] || "bg-gray-100 text-gray-700"
+                        conditionBadges[game.condition] ||
+                        "bg-gray-100 text-gray-700"
                       }`}
                     >
                       {game.condition}
                     </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate("/add-edit");
-                      }}
-                      className="text-vintage-accent hover:text-amber-700 text-sm font-medium"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/add-edit/${game.listingId}`);
+                        }}
+                        className="text-vintage-accent hover:text-amber-700 text-sm font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(game.listingId, e)}
+                        disabled={deletingId === game.listingId}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deletingId === game.listingId
+                          ? "Deleting..."
+                          : "Delete"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
