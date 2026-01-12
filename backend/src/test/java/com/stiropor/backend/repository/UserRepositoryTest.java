@@ -15,17 +15,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 class UserRepositoryTest {
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final CountryRepository countryRepository;
+    private final TownRepository townRepository;
 
     private User testUser;
 
-    UserRepositoryTest(UserRepository userRepository) {
+    @Autowired
+    UserRepositoryTest(UserRepository userRepository,
+                       CountryRepository countryRepository,
+                       TownRepository townRepository) {
         this.userRepository = userRepository;
+        this.countryRepository = countryRepository;
+        this.townRepository = townRepository;
     }
 
     @BeforeEach
     void setUp() {
-        Town town = new Town("TestTown", new Country("TestCountry"));
+        Country country = countryRepository.save(new Country("TestCountry"));
+        Town town = townRepository.save(new Town("TestTown", country));
         testUser = new User("test@example.com", "hashedPassword", "testUser", 0.0, 0.0, town);
         userRepository.save(testUser);
     }

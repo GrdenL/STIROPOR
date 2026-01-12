@@ -50,6 +50,8 @@ class OfferServiceTest {
     void setUp() {
         fromUser = new User("from@example.com", null, "fromUser", 1.0, 0.0, null);
         toUser = new User("to@example.com", null, "toUser", 2.0, 0.0, null);
+        fromUser.setUserId(1);
+        toUser.setUserId(2);
 
         requestedListing = new Listing();
         requestedListing.setListingId(10);

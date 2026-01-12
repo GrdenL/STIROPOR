@@ -15,20 +15,29 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 class GameRepositoryTest {
     private final GameRepository gameRepository;
+    private final GenreRepository genreRepository;
 
     private Game testGame;
     private List<Genre> testGenres;
 
-    GameRepositoryTest(GameRepository gameRepository) {
+    @Autowired
+    GameRepositoryTest(GameRepository gameRepository, GenreRepository genreRepository) {
         this.gameRepository = gameRepository;
+        this.genreRepository = genreRepository;
     }
 
     @BeforeEach
     void setUp() {
-        Genre testGenre = new Genre("Action");
+        testGenres = new ArrayList<>();
+        Genre testGenre = genreRepository.save(new Genre("Action"));
         testGenres.add(testGenre);
         testGame = new Game();
         testGame.setGameName("Test Game");
+        testGame.setPublisher("Test Publisher");
+        testGame.setMaxMinPlayers("2-4");
+        testGame.setAvgPlayTime(60);
+        testGame.setComplexity(2);
+        testGame.setYearPublished(2020);
         testGame.setGenres(testGenres);
 
         gameRepository.save(testGame);

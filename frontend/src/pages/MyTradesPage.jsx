@@ -69,43 +69,56 @@ const MyTradesPage = () => {
             // Fetch offered listing details (the one being offered to you)
             const offeredListing = offer.offeredListing
               ? offer.offeredListing
-              : await getListingById(offer.offeredListingIds[0]);
+              : offer.offeredListingIds?.length
+              ? await getListingById(offer.offeredListingIds[0])
+              : null;
 
             // Determine if this is received or sent trade
             const isReceived = tradeType === "received";
-            const partner = isReceived ? offer.fromUser : offer.toUser;
+            const fromName = offer.fromUsername || `User ${offer.fromUserId}`;
+            const toName = offer.toUsername || `User ${offer.toUserId}`;
+            const partnerName = isReceived ? fromName : toName;
             const yourListing = isReceived ? targetListing : offeredListing;
             const theirListing = isReceived ? offeredListing : targetListing;
+            const statusValue =
+              offer.status !== undefined ? offer.status : offer.offerStatus;
+            const normalizedStatus = Number.isInteger(statusValue)
+              ? statusValue
+              : 0;
+            const partnerEmailName = (partnerName || "")
+              .toLowerCase()
+              .replace(" ", ".");
 
             return {
               id: offer.id || offer.offerId,
-              from: isReceived
-                ? partner?.username || `User ${offer.fromUserId}`
-                : "You",
+              from: isReceived ? fromName : "You",
               fromInitials: getInitials(
-                isReceived
-                  ? partner?.username || `User ${offer.fromUserId}`
-                  : "You"
+                isReceived ? fromName : "You"
               ),
-              to: isReceived
-                ? "You"
-                : partner?.username || `User ${offer.toUserId}`,
-              yourGame: yourListing?.game?.name || "Unknown Game",
+              to: isReceived ? "You" : toName,
+              yourGame:
+                yourListing?.game?.gameName ||
+                yourListing?.game?.name ||
+                yourListing?.gameName ||
+                "Unknown Game",
               yourCondition: formatCondition(yourListing?.condition),
-              theirGame: theirListing?.game?.name || "Unknown Game",
+              theirGame:
+                theirListing?.game?.gameName ||
+                theirListing?.game?.name ||
+                theirListing?.gameName ||
+                "Unknown Game",
               theirCondition: formatCondition(theirListing?.condition),
-              status: offer.status,
+              status: normalizedStatus,
               date: formatDate(offer.createdAt),
               partnerEmail:
-                partner?.email ||
-                `${partner?.username
-                  ?.toLowerCase()
-                  .replace(" ", ".")}@example.com`,
-              partnerBio: partner?.bio || "Board game enthusiast",
+                partnerEmailName
+                  ? `${partnerEmailName}@example.com`
+                  : "unknown@example.com",
+              partnerBio: "Board game enthusiast",
               location:
-                partner?.location || theirListing?.user?.location || "Unknown",
+                theirListing?.user?.location || "Unknown",
               distance: calculateDistance(
-                partner?.location || theirListing?.user?.location
+                theirListing?.user?.location
               ),
               targetListingId: offer.targetListingId,
               offeredListingIds: offer.offeredListingIds,
@@ -113,7 +126,7 @@ const MyTradesPage = () => {
               toUserId: offer.toUserId,
               message: offer.message || "No message provided",
               isReceived: isReceived,
-              partner: partner,
+              partnerName: partnerName,
             };
           } catch (error) {
             console.error(

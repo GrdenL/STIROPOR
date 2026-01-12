@@ -2,6 +2,7 @@ package com.stiropor.backend.controller;
 
 import com.stiropor.backend.dto.CreateOfferRequest;
 import com.stiropor.backend.dto.OfferResponse;
+import com.stiropor.backend.model.User;
 import com.stiropor.backend.service.OfferService;
 import com.stiropor.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,7 @@ class OfferControllerTest {
     private Authentication authentication;
 
     private OfferResponse testOffer;
+    private User authUser;
 
     @BeforeEach
     void setUp() {
@@ -43,6 +45,9 @@ class OfferControllerTest {
         testOffer.setTargetListingId(10);
         testOffer.setOfferedListingIds(List.of(20, 30));
         testOffer.setMessage("Test message");
+
+        authUser = new User("user@example.com", null, "testUser", 1.0, 0.0, null);
+        authUser.setUserId(1);
     }
 
     @Test
@@ -54,7 +59,7 @@ class OfferControllerTest {
 
         // Mock authentication and user
         when(authentication.getName()).thenReturn("user@example.com");
-        when(userService.findByEmail("user@example.com")).thenReturn(new com.stiropor.backend.model.User("user@example.com", null, null, 1.0,0.0,null));
+        when(userService.findByEmail("user@example.com")).thenReturn(authUser);
 
         // Mock offer service
         when(offerService.createOffer(10, List.of(20,30), "Test message", 1)).thenReturn(testOffer);
@@ -74,7 +79,7 @@ class OfferControllerTest {
         request.setMessage("Test message");
 
         when(authentication.getName()).thenReturn("user@example.com");
-        when(userService.findByEmail("user@example.com")).thenReturn(new com.stiropor.backend.model.User("user@example.com", null, null, 1.0,0.0,null));
+        when(userService.findByEmail("user@example.com")).thenReturn(authUser);
         when(offerService.createOffer(anyInt(), anyList(), anyString(), anyInt())).thenThrow(new IllegalArgumentException("Invalid offer"));
 
         ResponseEntity<?> response = offerController.createOffer(request, authentication);
@@ -91,7 +96,7 @@ class OfferControllerTest {
         request.setMessage("Test message");
 
         when(authentication.getName()).thenReturn("user@example.com");
-        when(userService.findByEmail("user@example.com")).thenReturn(new com.stiropor.backend.model.User("user@example.com", null, null, 1.0,0.0,null));
+        when(userService.findByEmail("user@example.com")).thenReturn(authUser);
         when(offerService.createOffer(anyInt(), anyList(), anyString(), anyInt())).thenThrow(new RuntimeException("DB error"));
 
         ResponseEntity<?> response = offerController.createOffer(request, authentication);
@@ -130,6 +135,6 @@ class OfferControllerTest {
         ResponseEntity<?> response = offerController.getOfferById(1, authentication);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(((String)response.getBody()).contains("DB error"));
+        assertEquals("Failed to retrieve offer", response.getBody());
     }
 }

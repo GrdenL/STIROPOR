@@ -2,6 +2,7 @@ package com.stiropor.backend.controller;
 
 import com.stiropor.backend.dto.CreateOfferRequest;
 import com.stiropor.backend.dto.OfferResponse;
+import com.stiropor.backend.model.User;
 import com.stiropor.backend.model.OfferStatus;
 import com.stiropor.backend.service.OfferService;
 import com.stiropor.backend.service.UserService;
@@ -29,7 +30,11 @@ public class OfferController {
             Authentication authentication) {
         try {
             // Get current user ID from authentication
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
 
             // Validate request
             if (request.getRequestedListingId() == null) {
@@ -64,7 +69,11 @@ public class OfferController {
             @PathVariable Integer offerId,
             Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             OfferResponse offer = offerService.getOfferById(offerId, currentUserId);
             return ResponseEntity.ok(offer);
         } catch (IllegalArgumentException e) {
@@ -84,7 +93,11 @@ public class OfferController {
     @GetMapping("/received")
     public ResponseEntity<?> getReceivedOffers(Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             List<OfferResponse> offers = offerService.getReceivedOffers(currentUserId);
             return ResponseEntity.ok(offers != null ? offers : List.of());
         } catch (Exception e) {
@@ -100,7 +113,11 @@ public class OfferController {
     @GetMapping("/sent")
     public ResponseEntity<?> getSentOffers(Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             List<OfferResponse> offers = offerService.getSentOffers(currentUserId);
             return ResponseEntity.ok(offers != null ? offers : List.of());
         } catch (Exception e) {
@@ -116,7 +133,11 @@ public class OfferController {
     @GetMapping("/me")
     public ResponseEntity<?> getMyOffers(Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             List<OfferResponse> offers = offerService.getAllUserOffers(currentUserId);
             return ResponseEntity.ok(offers != null ? offers : List.of());
         } catch (Exception e) {
@@ -137,7 +158,11 @@ public class OfferController {
             @RequestParam(required = false) String statusString,
             Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
 
             // Determine the status value
             Integer statusValue = null;
@@ -187,7 +212,12 @@ public class OfferController {
             @PathVariable Integer offerId,
             Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();offerService.cancelOffer(offerId, currentUserId);
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
+            offerService.cancelOffer(offerId, currentUserId);
             return ResponseEntity.ok("gas");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -208,7 +238,11 @@ public class OfferController {
             @PathVariable Integer offerId,
             Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             OfferResponse acceptedOffer = offerService.acceptOffer(offerId, currentUserId);
             return ResponseEntity.ok(acceptedOffer);
         } catch (IllegalArgumentException e) {
@@ -230,7 +264,11 @@ public class OfferController {
             @PathVariable Integer offerId,
             Authentication authentication) {
         try {
-            Integer currentUserId = userService.findByEmail(authentication.getName()).getUserId();
+            Integer currentUserId = resolveCurrentUserId(authentication);
+            if (currentUserId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             OfferResponse declinedOffer = offerService.declineOffer(offerId, currentUserId);
             return ResponseEntity.ok(declinedOffer);
         } catch (IllegalArgumentException e) {
@@ -242,5 +280,16 @@ public class OfferController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to decline offer: " + e.getMessage());
         }
+    }
+
+    private Integer resolveCurrentUserId(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return null;
+        }
+        User user = userService.findByEmail(authentication.getName());
+        if (user == null) {
+            return null;
+        }
+        return user.getUserId();
     }
 }

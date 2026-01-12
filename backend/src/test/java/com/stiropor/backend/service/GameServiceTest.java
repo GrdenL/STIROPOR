@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ class GameServiceTest {
 
     @BeforeEach
     void setUp() {
+        testGenres = new ArrayList<>();
         Genre testGenre = new Genre("Action");
         testGenres.add(testGenre);
         testGame = new Game();

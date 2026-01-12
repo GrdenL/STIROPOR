@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +33,7 @@ class GamesControllerTest {
 
     @BeforeEach
     void setUp() {
+        testGenres = new ArrayList<>();
         Genre testGenre = new Genre("Action");
         testGenres.add(testGenre);
         testGame = new Game();
