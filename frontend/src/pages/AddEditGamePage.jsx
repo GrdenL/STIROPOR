@@ -19,7 +19,9 @@ const AddEditGamePage = () => {
   const [condition, setCondition] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const uploadRef = useRef(null);
+  const autocompleteRef = useRef(null);
 
   // Fetch available games for autocomplete
   useEffect(() => {
@@ -75,14 +77,26 @@ const AddEditGamePage = () => {
     return () => clearTimeout(timer);
   }, [showPopup]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!autocompleteRef.current) return;
+      if (!autocompleteRef.current.contains(event.target)) {
+        setIsSuggestionsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Autocomplete matches
   const matches = useMemo(() => {
     const query = gameName.toLowerCase().trim();
     if (!query) return [];
 
     return availableGames
-      .filter((game) => game.gameName.toLowerCase().includes(query))
-      .slice(0, 10); // Limit to 10 suggestions
+            .filter((game) => game.gameName.toLowerCase().includes(query))
+            .slice(0, 10); // Limit to 10 suggestions
   }, [gameName, availableGames]);
 
   const resetForm = () => {
@@ -208,13 +222,22 @@ const AddEditGamePage = () => {
                 onSubmit={handleSubmit}
                 className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-8 sticky top-24"
               >
-                <div className="mb-6 relative">
+                <div className="mb-6 relative" ref={autocompleteRef}>
                   <label className="block text-sm font-medium mb-2">
                     Game name *
                   </label>
                   <input
                     value={gameName}
-                    onChange={(e) => setGameName(e.target.value)}
+                    onChange={(e) => {
+                      setGameName(e.target.value);
+                      setIsSuggestionsOpen(true);
+                    }}
+                    onFocus={() => setIsSuggestionsOpen(true)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setIsSuggestionsOpen(false);
+                      }
+                    }}
                     type="text"
                     className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
                     placeholder="e.g. Catan"
@@ -227,13 +250,16 @@ const AddEditGamePage = () => {
                       Loading available games...
                     </p>
                   )}
-                  {matches.length > 0 && (
+                  {isSuggestionsOpen && matches.length > 0 && (
                     <div className="absolute w-full bg-white border border-vintage-brown/20 rounded-xl mt-1 shadow-lg max-h-64 overflow-y-auto z-[60]">
                       {matches.map((game) => (
                         <button
                           key={game.gameId}
                           type="button"
-                          onClick={() => setGameName(game.gameName)}
+                          onClick={() => {
+                            setGameName(game.gameName);
+                            setIsSuggestionsOpen(false);
+                          }}
                           className="w-full text-left px-4 py-3 hover:bg-vintage-cream transition"
                         >
                           <div className="font-medium">{game.gameName}</div>
