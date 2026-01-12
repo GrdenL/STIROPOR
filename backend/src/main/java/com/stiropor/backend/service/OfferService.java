@@ -262,6 +262,7 @@ public class OfferService {
             // Mark target listing as inactive
             Listing targetListing = offer.getListing();
             targetListing.setIsActive(false);
+            targetListing.setUser(offer.getFrom_user());
             listingRepository.save(targetListing);
 
             // Mark all offered listings as inactive
@@ -269,6 +270,7 @@ public class OfferService {
             for (OfferItem item : offerItems) {
                 Listing offeredListing = item.getListing();
                 offeredListing.setIsActive(false);
+                offeredListing.setUser(offer.getTo_user());
                 listingRepository.save(offeredListing);
             }
         }

@@ -11,6 +11,15 @@ const difficultyMap = {
   5: { label: "Hard", color: "bg-red-100 text-red-700" },
 };
 
+const resolveGameImage = (game) => {
+  const name = game?.gameName?.toLowerCase().trim();
+  if (!name) {
+    return logo;
+  }
+  const slug = name.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return slug ? `/images/games/${slug}.jpg` : logo;
+};
+
 const playerCountMatches = (range, selected) => {
   if (selected === "All") return true;
 
@@ -161,6 +170,7 @@ const GamesPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredGames.map((game) => {
             const difficulty = difficultyMap[game.complexity];
+            const imageSrc = resolveGameImage(game);
 
             return (
               <div
@@ -169,7 +179,7 @@ const GamesPage = () => {
               >
                 <div className="w-full h-48 bg-white rounded-t-xl flex items-center justify-center p-4">
                   <img
-                    src={game.media?.href}
+                    src={imageSrc}
                     alt={game.gameName}
                     onError={(e) => {
                       e.target.src = logo;
