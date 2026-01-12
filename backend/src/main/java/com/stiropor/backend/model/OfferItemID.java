@@ -9,10 +9,10 @@ import java.util.Objects;
 @Embeddable
 public class OfferItemID implements Serializable {
 
-    @Column(name = "offerid")
+    @Column(name = "offer_id")
     private Integer offerId;
 
-    @Column(name = "listingid")
+    @Column(name = "listing_id")
     private Integer listingId;
 
     protected OfferItemID() {

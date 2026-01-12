@@ -11,12 +11,12 @@ public class OfferItem {
 
     @ManyToOne(optional = false)
     @MapsId("offerId")
-    @JoinColumn(name = "offerid", nullable = false)
+    @JoinColumn(name = "offer_id", nullable = false)
     private Offer offer;
 
     @ManyToOne(optional = false)
     @MapsId("listingId")
-    @JoinColumn(name = "listingid", nullable = false)
+    @JoinColumn(name = "listing_id", nullable = false)
     private Listing listing;
 
     @Column(nullable = false)
