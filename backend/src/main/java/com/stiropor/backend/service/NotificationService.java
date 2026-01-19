@@ -3,6 +3,8 @@ package com.stiropor.backend.service;
 import com.stiropor.backend.model.Notification;
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.repository.NotificationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import java.util.List;
 
 @Service
 public class NotificationService {
+    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
 
@@ -35,7 +38,11 @@ public class NotificationService {
         message.setFrom("projekt@gmail.com");
         message.setReplyTo(fromEmail);
 
-        mailSender.send(message);
+        try {
+            mailSender.send(message);
+        } catch (Exception e) {
+            logger.warn("Failed to send notification email from {} to {}", fromEmail, toEmail, e);
+        }
     }
 
     public void createAndSendNotification(User recipient, String senderEmail, String type, Integer payloadId, String subject, String body) {

@@ -80,6 +80,13 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         String token = jwtUtil.generateToken(email);
+        Cookie cookie = new Cookie("jwt", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 10);
+        cookie.setAttribute("SameSite", "None");
+        response.addCookie(cookie);
         response.sendRedirect(frontendUrl + "?token=" + token);
     }
 
