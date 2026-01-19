@@ -5,8 +5,34 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const resolveJwt = () => {
+  try {
+    const stored = sessionStorage.getItem("jwt");
+    if (stored) return stored;
+  } catch (err) {
+    // Ignore storage errors (e.g. blocked storage contexts).
+  }
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      try {
+        sessionStorage.setItem("jwt", token);
+      } catch (err) {
+        // Ignore storage errors (token still usable for this request).
+      }
+      return token;
+    }
+  } catch (err) {
+    // Ignore URL parsing errors.
+  }
+
+  return null;
+};
+
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("jwt");
+  const token = resolveJwt();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
