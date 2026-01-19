@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LogOut, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import { logoutUser } from "../utils/api";
@@ -10,6 +10,8 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onDocClick = (e) => {
@@ -40,6 +42,8 @@ const Navbar = () => {
       sessionStorage.removeItem("jwt");
       logout();
       setOpen(false);
+
+      navigate("/");
     }
   };
 
