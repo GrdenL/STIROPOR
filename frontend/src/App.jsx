@@ -30,7 +30,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/edit" element={<EditProfilePage />} />
           <Route path="/my-games" element={<MyGamesPage />} />
-          <Route path="/my-trades" element={<MyTradesPage />} />
+          <Route path="/my-trades" element={<MyTradesPage />}/>
           <Route path="/add-edit" element={<AddEditGamePage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
         </Routes>
