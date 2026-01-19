@@ -8,6 +8,7 @@ import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -29,6 +30,10 @@ public class UserController {
     private final JwtUtil jwtUtil;
     private final NominatimService nominatimService;
     private final BCryptService bCryptService;
+    @Value("${server.servlet.session.cookie.secure:true}")
+    private boolean cookieSecure;
+    @Value("${server.servlet.session.cookie.same-site:None}")
+    private String cookieSameSite;
 
     public UserController(UserService userService, TownService townService, CountryService countryService, JwtUtil jwtUtil, NominatimService nominatimService, BCryptService bCryptService) {
         this.userService = userService;
@@ -92,8 +97,8 @@ public class UserController {
                 cookie.setMaxAge(60 * 60 * 24);
                 cookie.setPath("/");
                 cookie.setHttpOnly(true);
-                cookie.setSecure(false);                                 //ZAMIJENI NA TRUE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                cookie.setAttribute("SameSite", "Lax");          //ZAMIJENI NA NONE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                cookie.setSecure(cookieSecure);
+                cookie.setAttribute("SameSite", cookieSameSite);
                 response.addCookie(cookie);
                 return ResponseEntity.ok(Map.of("user", user, "token", token));
             }
@@ -224,10 +229,10 @@ public class UserController {
 
             Cookie cookie = new Cookie("jwt", null);
             cookie.setHttpOnly(true);
-            cookie.setSecure(false);                           //ZAMIJENI NA TRUE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             cookie.setPath("/");
             cookie.setMaxAge(0);
-            cookie.setAttribute("SameSite", "Lax");          //ZAMIJENI NA NONE PRIJE PUSHA NA MAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            cookie.setSecure(cookieSecure);
+            cookie.setAttribute("SameSite", cookieSameSite);
             response.addCookie(cookie);
 
             return ResponseEntity.ok("Logged out successfully");

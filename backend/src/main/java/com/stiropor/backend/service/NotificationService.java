@@ -5,6 +5,7 @@ import com.stiropor.backend.model.User;
 import com.stiropor.backend.repository.NotificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,8 @@ public class NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
+    @Value("${spring.mail.username}")
+    private String mailFrom;
 
     public NotificationService(NotificationRepository notificationRepository, JavaMailSender mailSender) {
         this.notificationRepository = notificationRepository;
@@ -35,7 +38,7 @@ public class NotificationService {
         message.setSubject("["+fromEmail+"] "+subject);
         String formattedContent = "Dobili ste novu poruku od: " + fromEmail + "\n" + "-------------------------------------------\n\n" + body;
         message.setText(formattedContent);
-        message.setFrom("projekt@gmail.com");
+        message.setFrom(mailFrom);
         message.setReplyTo(fromEmail);
 
         try {
