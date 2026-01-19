@@ -18,6 +18,11 @@ export const AuthProvider = ({ children }) => {
     const token = params.get("token");
     if (token) {
       sessionStorage.setItem("jwt", token);
+      try {
+        localStorage.setItem("jwt", token);
+      } catch (err) {
+        // Ignore storage errors.
+      }
       params.delete("token");
       const nextSearch = params.toString();
       navigate(

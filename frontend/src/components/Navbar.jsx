@@ -40,6 +40,7 @@ const Navbar = () => {
       console.error("logout error:", err);
     } finally {
       sessionStorage.removeItem("jwt");
+      localStorage.removeItem("jwt");
       logout();
       setOpen(false);
 

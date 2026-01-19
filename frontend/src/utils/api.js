@@ -14,11 +14,30 @@ const resolveJwt = () => {
   }
 
   try {
+    const stored = localStorage.getItem("jwt");
+    if (stored) {
+      try {
+        sessionStorage.setItem("jwt", stored);
+      } catch (err) {
+        // Ignore storage errors (token still usable for this request).
+      }
+      return stored;
+    }
+  } catch (err) {
+    // Ignore storage errors (e.g. blocked storage contexts).
+  }
+
+  try {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
       try {
         sessionStorage.setItem("jwt", token);
+      } catch (err) {
+        // Ignore storage errors (token still usable for this request).
+      }
+      try {
+        localStorage.setItem("jwt", token);
       } catch (err) {
         // Ignore storage errors (token still usable for this request).
       }
@@ -45,8 +64,32 @@ export const getCurrentUser = async () => {
 
     return res.data;
   } catch (err) {
-    if (err?.response?.status === 401 && sessionStorage.getItem("jwt")) {
-      sessionStorage.removeItem("jwt");
+    const hasSessionToken = (() => {
+      try {
+        return Boolean(sessionStorage.getItem("jwt"));
+      } catch (tokenErr) {
+        return false;
+      }
+    })();
+    const hasLocalToken = (() => {
+      try {
+        return Boolean(localStorage.getItem("jwt"));
+      } catch (tokenErr) {
+        return false;
+      }
+    })();
+
+    if (err?.response?.status === 401 && (hasSessionToken || hasLocalToken)) {
+      try {
+        sessionStorage.removeItem("jwt");
+      } catch (tokenErr) {
+        // Ignore storage errors.
+      }
+      try {
+        localStorage.removeItem("jwt");
+      } catch (tokenErr) {
+        // Ignore storage errors.
+      }
       try {
         const res = await api.get("/me", { withCredentials: true });
         return res.data;

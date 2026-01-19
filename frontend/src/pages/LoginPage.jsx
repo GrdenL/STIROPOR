@@ -27,6 +27,7 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       sessionStorage.removeItem("jwt");
+      localStorage.removeItem("jwt");
       const { email, password } = formData;
       const res = await login(email, password);
       if (!res?.data?.user) {
@@ -35,6 +36,7 @@ const LoginPage = () => {
       }
       if (res.data.token) {
         sessionStorage.setItem("jwt", res.data.token);
+        localStorage.setItem("jwt", res.data.token);
       }
       setAuthUser(res.data.user);
       // uspjeh
@@ -152,7 +154,10 @@ const LoginPage = () => {
             <div className="space-y-3">
               <a
                 href={googleAuthUrl}
-                onClick={() => sessionStorage.removeItem("jwt")}
+                onClick={() => {
+                  sessionStorage.removeItem("jwt");
+                  localStorage.removeItem("jwt");
+                }}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
