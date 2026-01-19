@@ -148,17 +148,15 @@ public class ListingController {
     private User getAuthenticatedUser(HttpServletRequest request) {
         String jwt = null;
 
-        if (request.getCookies() != null) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+            jwt = authHeader.substring(7);
+        }
+        if (jwt == null && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("jwt".equals(cookie.getName())) {
                     jwt = cookie.getValue();
                 }
-            }
-        }
-        if (jwt == null) {
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-                jwt = authHeader.substring(7);
             }
         }
         if (jwt == null) {

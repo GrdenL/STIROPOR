@@ -49,17 +49,15 @@ public class UserController {
         try {
             String jwt = null;
 
-            if (request.getCookies() != null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+                jwt = authHeader.substring(7);
+            }
+            if (jwt == null && request.getCookies() != null) {
                 for (Cookie cookie : request.getCookies()) {
                     if (cookie.getName().equals("jwt")) {
                         jwt = cookie.getValue();
                     }
-                }
-            }
-            if (jwt == null) {
-                String authHeader = request.getHeader("Authorization");
-                if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-                    jwt = authHeader.substring(7);
                 }
             }
             if (jwt == null) {
@@ -129,7 +127,11 @@ public class UserController {
     public ResponseEntity<?> updateCurrentUser(@RequestBody Map<String, Object> updates, HttpServletRequest request) {
         try {
             String jwt = null;
-            if (request.getCookies() != null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+                jwt = authHeader.substring(7);
+            }
+            if (jwt == null && request.getCookies() != null) {
                 for (Cookie cookie : request.getCookies()) {
                     if (cookie.getName().equals("jwt")) jwt = cookie.getValue();
                 }
