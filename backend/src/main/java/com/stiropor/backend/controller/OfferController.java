@@ -2,8 +2,11 @@ package com.stiropor.backend.controller;
 
 import com.stiropor.backend.dto.CreateOfferRequest;
 import com.stiropor.backend.dto.OfferResponse;
+import com.stiropor.backend.model.Game;
 import com.stiropor.backend.model.User;
 import com.stiropor.backend.model.OfferStatus;
+import com.stiropor.backend.service.ListingService;
+import com.stiropor.backend.service.NotificationService;
 import com.stiropor.backend.service.OfferService;
 import com.stiropor.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,12 @@ public class OfferController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private ListingService listingService;
 
     @PostMapping
     public ResponseEntity<?> createOffer(
@@ -51,6 +60,26 @@ public class OfferController {
                     request.getOfferedListingIds(),
                     request.getMessage(),
                     currentUserId
+            );
+
+            User sender = userService.findByEmail(authentication.getName());
+            User recipient = userService.findByUserId(offer.getToUserId());
+            String games = "";
+            List<Integer> offerListingIds = request.getOfferedListingIds();
+
+            for (Integer id : offerListingIds) {
+                games += listingService.findByListingId(id).getGame().getGameName() + ", ";
+            }
+            games = games.substring(0, games.length() - 1);
+
+            notificationService.createAndSendNotification(
+                    recipient,
+                    sender.getEmail(),
+                    "OFFER_RECEVIED",
+                    offer.getOfferId(),
+                    "New offer for your game!",
+                    "User " + sender.getUsername() + "is offering you: "+games+"\nfor your: "
+                            + listingService.findByListingId(request.getRequestedListingId()).getGame().getGameName()
             );
 
             return ResponseEntity.status(HttpStatus.CREATED).body(offer);
@@ -217,7 +246,23 @@ public class OfferController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("User not authenticated");
             }
+
+
+            User sender = userService.findByEmail(authentication.getName());
+            User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getToUserId());
+
+            notificationService.createAndSendNotification(
+                    recipient,
+                    sender.getEmail(),
+                    "OFFER_CANCELLED",
+                    offerId,
+                    "An offer for you has been cancelled!",
+                    "User " + sender.getUsername() + " has cancelled their offer!"
+            );
+
             offerService.cancelOffer(offerId, currentUserId);
+
+
             return ResponseEntity.ok("gas");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -243,6 +288,20 @@ public class OfferController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("User not authenticated");
             }
+
+            User sender = userService.findByEmail(authentication.getName());
+            User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getFromUserId());
+
+            notificationService.createAndSendNotification(
+                    recipient,
+                    sender.getEmail(),
+                    "OFFER_ACCEPTED",
+                    offerId,
+                    "Your offer has been accepted!",
+                    "User " + sender.getUsername() + " has accepted your offer!"
+            );
+
+
             OfferResponse acceptedOffer = offerService.acceptOffer(offerId, currentUserId);
             return ResponseEntity.ok(acceptedOffer);
         } catch (IllegalArgumentException e) {
@@ -269,6 +328,20 @@ public class OfferController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("User not authenticated");
             }
+
+            User sender = userService.findByEmail(authentication.getName());
+            User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getFromUserId());
+
+            notificationService.createAndSendNotification(
+                    recipient,
+                    sender.getEmail(),
+                    "OFFER_DECLINED",
+                    offerId,
+                    "Your offer has been declined!",
+                    "User " + sender.getUsername() + " has declined your offer!"
+            );
+
+
             OfferResponse declinedOffer = offerService.declineOffer(offerId, currentUserId);
             return ResponseEntity.ok(declinedOffer);
         } catch (IllegalArgumentException e) {
