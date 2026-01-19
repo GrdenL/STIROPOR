@@ -227,7 +227,7 @@ public class UserController {
                 request.getSession(false).invalidate();
             }
 
-            Cookie cookie = new Cookie("jwt", null);
+            Cookie cookie = new Cookie("jwt", "");
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             cookie.setMaxAge(0);
