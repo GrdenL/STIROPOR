@@ -19,6 +19,16 @@ export const getCurrentUser = async () => {
 
     return res.data;
   } catch (err) {
+    if (err?.response?.status === 401 && sessionStorage.getItem("jwt")) {
+      sessionStorage.removeItem("jwt");
+      try {
+        const res = await api.get("/me", { withCredentials: true });
+        return res.data;
+      } catch (retryErr) {
+        console.error("Get current user failed after retry:", retryErr);
+        return null;
+      }
+    }
     console.error("Get current user failed:", err);
     return null;
   }

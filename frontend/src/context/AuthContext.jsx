@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     getCurrentUser().then((data) => {
-      if (data) setUser(data);
+      setUser(data ?? null);
     });
   }, [location.search]);
 
