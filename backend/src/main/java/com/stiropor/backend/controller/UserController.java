@@ -48,12 +48,10 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
-            String email = resolveEmailFromRequest(request);
-            if (email == null) {
+            User user = resolveUserFromRequest(request);
+            if (user == null) {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
-            User user =  userService.findByEmail(email);
-
             return ResponseEntity.ok(user);
 
         } catch (Exception e) {
@@ -113,11 +111,8 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<?> updateCurrentUser(@RequestBody Map<String, Object> updates, HttpServletRequest request) {
         try {
-            String email = resolveEmailFromRequest(request);
-            if (email == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            User user = userService.findByEmail(email);
-
-            if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            User user = resolveUserFromRequest(request);
+            if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
             if (updates.containsKey("username")) {
                 user.setUsername((String) updates.get("username"));
@@ -216,12 +211,12 @@ public class UserController {
         }
     }
 
-    private String resolveEmailFromRequest(HttpServletRequest request) {
+    private User resolveUserFromRequest(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-            String email = safelyExtractEmail(authHeader.substring(7));
-            if (email != null) {
-                return email;
+            User user = resolveUserFromToken(authHeader.substring(7));
+            if (user != null) {
+                return user;
             }
         }
 
@@ -233,16 +228,30 @@ public class UserController {
             if (!"jwt".equals(cookie.getName())) {
                 continue;
             }
-            String email = safelyExtractEmail(cookie.getValue());
-            if (email != null) {
-                return email;
+            User user = resolveUserFromToken(cookie.getValue());
+            if (user != null) {
+                return user;
             }
         }
 
         return null;
     }
 
-    private String safelyExtractEmail(String jwt) {
+    private User resolveUserFromToken(String jwt) {
+        String subject = safelyExtractSubject(jwt);
+        if (subject == null) {
+            return null;
+        }
+
+        User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user;
+        }
+
+        return userService.findByGoogleId(subject);
+    }
+
+    private String safelyExtractSubject(String jwt) {
         if (jwt == null || jwt.isBlank()) {
             return null;
         }

@@ -20,6 +20,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public User findByGoogleId(String googleId) {
+        return userRepository.findByGoogleId(googleId);
+    }
+
     public void deleteByEmail(String email) {
         userRepository.deleteByEmail(email);
     }

@@ -1,6 +1,5 @@
 package com.stiropor.backend.security;
 
-import com.stiropor.backend.repository.UserRepository;
 import com.stiropor.backend.service.UserService;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -8,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -43,14 +41,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
             jwt = authHeader.substring(7);
-            email = safelyExtractEmail(jwt);
+            email = resolveEmailFromToken(jwt);
         }
 
         if (email == null && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("jwt".equals(cookie.getName())) {
                     jwt = cookie.getValue();
-                    email = safelyExtractEmail(jwt);
+                    email = resolveEmailFromToken(jwt);
                     if (email != null) {
                         break;
                     }
@@ -59,22 +57,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (isValidUser(email)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                new User(email, "", Collections.emptyList()),
-                                null,
-                                Collections.emptyList()
-                        );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            new User(email, "", Collections.emptyList()),
+                            null,
+                            Collections.emptyList()
+                    );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private String safelyExtractEmail(String jwt) {
+    private String resolveEmailFromToken(String jwt) {
+        String subject = safelyExtractSubject(jwt);
+        if (subject == null) {
+            return null;
+        }
+
+        com.stiropor.backend.model.User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user.getEmail();
+        }
+
+        com.stiropor.backend.model.User googleUser = userService.findByGoogleId(subject);
+        if (googleUser != null) {
+            return googleUser.getEmail();
+        }
+
+        return null;
+    }
+
+    private String safelyExtractSubject(String jwt) {
         if (jwt == null || jwt.isBlank()) {
             return null;
         }
@@ -83,9 +98,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }
-    }
-
-    private Boolean isValidUser(String email) {
-        return userService.findByEmail(email) != null;
     }
 }
