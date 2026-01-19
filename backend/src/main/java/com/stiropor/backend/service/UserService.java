@@ -20,6 +20,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public User findByEmailIgnoreCase(String email) {
+        return userRepository.findByEmailIgnoreCase(email);
+    }
+
     public User findByGoogleId(String googleId) {
         return userRepository.findByGoogleId(googleId);
     }

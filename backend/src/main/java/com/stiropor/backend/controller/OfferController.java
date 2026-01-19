@@ -359,10 +359,39 @@ public class OfferController {
         if (authentication == null || authentication.getName() == null) {
             return null;
         }
-        User user = userService.findByEmail(authentication.getName());
-        if (user == null) {
+        User user = resolveUserBySubject(authentication.getName());
+        return user != null ? user.getUserId() : null;
+    }
+
+    private User resolveUserBySubject(String subject) {
+        User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByEmailIgnoreCase(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByGoogleId(subject);
+        if (user != null) {
+            return user;
+        }
+
+        Integer userId = parseUserId(subject);
+        if (userId != null) {
+            return userService.findByUserId(userId);
+        }
+
+        return null;
+    }
+
+    private Integer parseUserId(String subject) {
+        try {
+            return Integer.valueOf(subject);
+        } catch (NumberFormatException e) {
             return null;
         }
-        return user.getUserId();
     }
 }

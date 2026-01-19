@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MapComponent from '../components/MapComponent';
+import { useAuth } from "../context/AuthContext";
 import {
   getReceivedOffers,
   getSentOffers,
@@ -28,6 +29,7 @@ const statusConfig = {
 };
 
 const MyTradesPage = () => {
+  const { user, authReady } = useAuth();
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,8 +39,16 @@ const MyTradesPage = () => {
   const [tradeType, setTradeType] = useState("received");
 
   useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+    if (!user) {
+      setLoading(false);
+      setError("Please log in to view trades.");
+      return;
+    }
     fetchTrades();
-  }, [tradeType]);
+  }, [authReady, tradeType, user]);
 
   const fetchTrades = async () => {
     setLoading(true);

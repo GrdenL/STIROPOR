@@ -243,12 +243,8 @@ public class UserController {
             return null;
         }
 
-        User user = userService.findByEmail(subject);
-        if (user != null) {
-            return user;
-        }
-
-        return userService.findByGoogleId(subject);
+        User user = resolveUserBySubject(subject);
+        return user;
     }
 
     private String safelyExtractSubject(String jwt) {
@@ -258,6 +254,38 @@ public class UserController {
         try {
             return jwtUtil.extractUsername(jwt);
         } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private User resolveUserBySubject(String subject) {
+        User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByEmailIgnoreCase(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByGoogleId(subject);
+        if (user != null) {
+            return user;
+        }
+
+        Integer userId = parseUserId(subject);
+        if (userId != null) {
+            return userService.findByUserId(userId);
+        }
+
+        return null;
+    }
+
+    private Integer parseUserId(String subject) {
+        try {
+            return Integer.valueOf(subject);
+        } catch (NumberFormatException e) {
             return null;
         }
     }

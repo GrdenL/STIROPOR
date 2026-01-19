@@ -5,24 +5,57 @@ const api = axios.create({
   withCredentials: true,
 });
 
-const resolveJwt = () => {
+const decodeJwtPayload = (token) => {
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length < 2) return null;
   try {
-    const stored = sessionStorage.getItem("jwt");
-    if (stored) return stored;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch (err) {
+    return null;
+  }
+};
+
+const isExpired = (payload) => {
+  if (!payload || typeof payload.exp !== "number") return false;
+  const now = Math.floor(Date.now() / 1000);
+  return payload.exp <= now;
+};
+
+const pickNewestToken = (tokens) => {
+  const candidates = tokens
+    .map((token) => ({ token, payload: decodeJwtPayload(token) }))
+    .filter((item) => item.token && item.payload && !isExpired(item.payload));
+
+  if (!candidates.length) return null;
+
+  candidates.sort((a, b) => {
+    const expA = a.payload.exp || 0;
+    const expB = b.payload.exp || 0;
+    if (expA !== expB) return expB - expA;
+    const iatA = a.payload.iat || 0;
+    const iatB = b.payload.iat || 0;
+    return iatB - iatA;
+  });
+
+  return candidates[0].token;
+};
+
+const resolveJwt = () => {
+  let sessionToken = null;
+  let localToken = null;
+
+  try {
+    sessionToken = sessionStorage.getItem("jwt");
   } catch (err) {
     // Ignore storage errors (e.g. blocked storage contexts).
   }
 
   try {
-    const stored = localStorage.getItem("jwt");
-    if (stored) {
-      try {
-        sessionStorage.setItem("jwt", stored);
-      } catch (err) {
-        // Ignore storage errors (token still usable for this request).
-      }
-      return stored;
-    }
+    localToken = localStorage.getItem("jwt");
   } catch (err) {
     // Ignore storage errors (e.g. blocked storage contexts).
   }
@@ -47,7 +80,36 @@ const resolveJwt = () => {
     // Ignore URL parsing errors.
   }
 
-  return null;
+  const pickedToken = pickNewestToken([sessionToken, localToken]);
+  if (pickedToken && pickedToken !== sessionToken) {
+    try {
+      sessionStorage.setItem("jwt", pickedToken);
+    } catch (err) {
+      // Ignore storage errors.
+    }
+  }
+  if (pickedToken && pickedToken !== localToken) {
+    try {
+      localStorage.setItem("jwt", pickedToken);
+    } catch (err) {
+      // Ignore storage errors.
+    }
+  }
+
+  if (!pickedToken) {
+    try {
+      sessionStorage.removeItem("jwt");
+    } catch (err) {
+      // Ignore storage errors.
+    }
+    try {
+      localStorage.removeItem("jwt");
+    } catch (err) {
+      // Ignore storage errors.
+    }
+  }
+
+  return pickedToken;
 };
 
 api.interceptors.request.use((config) => {

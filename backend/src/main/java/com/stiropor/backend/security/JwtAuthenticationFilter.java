@@ -76,17 +76,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return null;
         }
 
-        com.stiropor.backend.model.User user = userService.findByEmail(subject);
-        if (user != null) {
-            return user.getEmail();
-        }
-
-        com.stiropor.backend.model.User googleUser = userService.findByGoogleId(subject);
-        if (googleUser != null) {
-            return googleUser.getEmail();
-        }
-
-        return null;
+        com.stiropor.backend.model.User user = resolveUserBySubject(subject);
+        return user != null ? user.getEmail() : null;
     }
 
     private String safelyExtractSubject(String jwt) {
@@ -96,6 +87,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             return jwtUtil.extractUsername(jwt);
         } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private com.stiropor.backend.model.User resolveUserBySubject(String subject) {
+        com.stiropor.backend.model.User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByEmailIgnoreCase(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByGoogleId(subject);
+        if (user != null) {
+            return user;
+        }
+
+        Integer userId = parseUserId(subject);
+        if (userId != null) {
+            return userService.findByUserId(userId);
+        }
+
+        return null;
+    }
+
+    private Integer parseUserId(String subject) {
+        try {
+            return Integer.valueOf(subject);
+        } catch (NumberFormatException e) {
             return null;
         }
     }
