@@ -214,6 +214,15 @@ export const getOfferById = async (offerId) => {
 };
 
 
+export const updateProfile = async (userData) => {
+    try {
+        const res = await api.put("/me", userData, { withCredentials: true });
+        return res.data;
+    } catch (err) {
+        console.error("Update profile failed:", err);
+        throw err;
+    }
+};
 
 
 

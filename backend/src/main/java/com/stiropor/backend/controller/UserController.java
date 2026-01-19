@@ -120,15 +120,48 @@ public class UserController {
         }
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody User user) {
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUser(@RequestBody Map<String, Object> updates, HttpServletRequest request) {
         try {
-            // Add validation to ensure users can only update their own data
-            User updatedUser = userService.save(user);
-            return ResponseEntity.ok(updatedUser);
+            String jwt = null;
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if (cookie.getName().equals("jwt")) jwt = cookie.getValue();
+                }
+            }
+
+            if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+            String email = jwtUtil.extractUsername(jwt);
+            User user = userService.findByEmail(email);
+
+            if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+
+            if (updates.containsKey("username")) {
+                user.setUsername((String) updates.get("username"));
+            }
+            if (updates.containsKey("description")) {
+                user.setDescription((String) updates.get("description"));
+            }
+            if (updates.containsKey("location")) {
+                String locationString = (String) updates.get("location");
+                //NominatimService.LocationResponse result = nominatimService.geocode(locationString);
+                //double lat = 0.0;
+                //double lon = 0.0;
+                //if(result != null) {
+                //    lat = Double.parseDouble(result.lat);
+                //    lon = Double.parseDouble(result.lon);
+                //}
+            }
+            if (updates.containsKey("avatar")) {
+
+            }
+
+            User savedUser = userService.save(user);
+            return ResponseEntity.ok(savedUser);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating user");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Update failed: " + e.getMessage());
         }
     }
 

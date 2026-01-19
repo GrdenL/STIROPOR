@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {updateProfile} from "../utils/api.js";
 
 const getInitials = (name) => {
   const trimmed = name.trim();
@@ -45,9 +46,22 @@ const EditProfilePage = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    setShowPopup(true);
+  const handleSubmit = async (event) => {
+      event.preventDefault();
+
+      try {
+          const payload = {
+              username: username,
+              description: bio,
+              location: location,
+              avatar: avatarDataUrl
+          };
+          const updatedUser = await updateProfile(payload);
+          setShowPopup(true);
+      } catch (err) {
+          console.error("Update failed:", err);
+          alert("Došlo je do greške pri spremanju profila.");
+      }
   };
 
   return (
