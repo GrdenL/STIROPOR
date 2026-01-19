@@ -230,7 +230,7 @@ public class UserController {
             Cookie cookie = new Cookie("jwt", null);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 24);
+            cookie.setMaxAge(0);
             cookie.setSecure(cookieSecure);
             cookie.setAttribute("SameSite", cookieSameSite);
             response.addCookie(cookie);
