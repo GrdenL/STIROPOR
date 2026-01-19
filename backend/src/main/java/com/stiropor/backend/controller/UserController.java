@@ -227,19 +227,35 @@ public class UserController {
                 request.getSession(false).invalidate();
             }
 
-            Cookie cookie = new Cookie("jwt", "");
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(0);
-            cookie.setSecure(cookieSecure);
-            cookie.setAttribute("SameSite", cookieSameSite);
-            response.addCookie(cookie);
+            clearCookie(request, response, "jwt");
+            clearCookie(request, response, "JSESSIONID");
+            clearCookie(request, response, "ARRAffinity");
+            clearCookie(request, response, "ARRAffinitySameSite");
 
             return ResponseEntity.ok("Logged out successfully");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Logout failed");
         }
+    }
+
+    private void clearCookie(HttpServletRequest request, HttpServletResponse response, String name) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setSecure(cookieSecure);
+        cookie.setAttribute("SameSite", cookieSameSite);
+        response.addCookie(cookie);
+
+        Cookie domainCookie = new Cookie(name, "");
+        domainCookie.setHttpOnly(true);
+        domainCookie.setPath("/");
+        domainCookie.setMaxAge(0);
+        domainCookie.setSecure(cookieSecure);
+        domainCookie.setAttribute("SameSite", cookieSameSite);
+        domainCookie.setDomain(request.getServerName());
+        response.addCookie(domainCookie);
     }
 }
 
