@@ -62,7 +62,11 @@ public class OfferController {
                     currentUserId
             );
 
-            User sender = userService.findByEmail(authentication.getName());
+            User sender = resolveUserBySubject(authentication.getName());
+            if (sender == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             User recipient = userService.findByUserId(offer.getToUserId());
             String games = "";
             List<Integer> offerListingIds = request.getOfferedListingIds();
@@ -70,7 +74,9 @@ public class OfferController {
             for (Integer id : offerListingIds) {
                 games += listingService.findByListingId(id).getGame().getGameName() + ", ";
             }
-            games = games.substring(0, games.length() - 1);
+            if (games.endsWith(", ")) {
+                games = games.substring(0, games.length() - 2);
+            }
 
             notificationService.createAndSendNotification(
                     recipient,
@@ -248,7 +254,11 @@ public class OfferController {
             }
 
 
-            User sender = userService.findByEmail(authentication.getName());
+            User sender = resolveUserBySubject(authentication.getName());
+            if (sender == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getToUserId());
 
             notificationService.createAndSendNotification(
@@ -289,7 +299,11 @@ public class OfferController {
                         .body("User not authenticated");
             }
 
-            User sender = userService.findByEmail(authentication.getName());
+            User sender = resolveUserBySubject(authentication.getName());
+            if (sender == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getFromUserId());
 
             notificationService.createAndSendNotification(
@@ -329,7 +343,11 @@ public class OfferController {
                         .body("User not authenticated");
             }
 
-            User sender = userService.findByEmail(authentication.getName());
+            User sender = resolveUserBySubject(authentication.getName());
+            if (sender == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("User not authenticated");
+            }
             User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getFromUserId());
 
             notificationService.createAndSendNotification(
