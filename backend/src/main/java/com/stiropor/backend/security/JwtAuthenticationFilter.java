@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import io.jsonwebtoken.JwtException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -42,19 +43,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
             jwt = authHeader.substring(7);
+            email = safelyExtractEmail(jwt);
         }
 
-        if (jwt == null && request.getCookies() != null) {
+        if (email == null && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("jwt".equals(cookie.getName())) {
                     jwt = cookie.getValue();
-                    break;
+                    email = safelyExtractEmail(jwt);
+                    if (email != null) {
+                        break;
+                    }
                 }
             }
-        }
-
-        if (jwt != null) {
-            email = jwtUtil.extractUsername(jwt);
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -71,6 +72,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String safelyExtractEmail(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return null;
+        }
+        try {
+            return jwtUtil.extractUsername(jwt);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Boolean isValidUser(String email) {

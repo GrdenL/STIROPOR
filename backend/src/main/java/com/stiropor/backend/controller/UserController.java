@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import io.jsonwebtoken.JwtException;
 
 import java.util.List;
 import java.util.Map;
@@ -47,24 +48,10 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
-            String jwt = null;
-
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-                jwt = authHeader.substring(7);
-            }
-            if (jwt == null && request.getCookies() != null) {
-                for (Cookie cookie : request.getCookies()) {
-                    if (cookie.getName().equals("jwt")) {
-                        jwt = cookie.getValue();
-                    }
-                }
-            }
-            if (jwt == null) {
+            String email = resolveEmailFromRequest(request);
+            if (email == null) {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
-
-            String email = jwtUtil.extractUsername(jwt);
             User user =  userService.findByEmail(email);
 
             return ResponseEntity.ok(user);
@@ -126,20 +113,8 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<?> updateCurrentUser(@RequestBody Map<String, Object> updates, HttpServletRequest request) {
         try {
-            String jwt = null;
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-                jwt = authHeader.substring(7);
-            }
-            if (jwt == null && request.getCookies() != null) {
-                for (Cookie cookie : request.getCookies()) {
-                    if (cookie.getName().equals("jwt")) jwt = cookie.getValue();
-                }
-            }
-
-            if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-
-            String email = jwtUtil.extractUsername(jwt);
+            String email = resolveEmailFromRequest(request);
+            if (email == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             User user = userService.findByEmail(email);
 
             if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
@@ -238,6 +213,43 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Logout failed");
+        }
+    }
+
+    private String resolveEmailFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+            String email = safelyExtractEmail(authHeader.substring(7));
+            if (email != null) {
+                return email;
+            }
+        }
+
+        if (request.getCookies() == null) {
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if (!"jwt".equals(cookie.getName())) {
+                continue;
+            }
+            String email = safelyExtractEmail(cookie.getValue());
+            if (email != null) {
+                return email;
+            }
+        }
+
+        return null;
+    }
+
+    private String safelyExtractEmail(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return null;
+        }
+        try {
+            return jwtUtil.extractUsername(jwt);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
         }
     }
 

@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import io.jsonwebtoken.JwtException;
 
 import java.util.List;
 import java.util.Optional;
@@ -146,25 +147,49 @@ public class ListingController {
     }
 
     private User getAuthenticatedUser(HttpServletRequest request) {
-        String jwt = null;
-
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-            jwt = authHeader.substring(7);
-        }
-        if (jwt == null && request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("jwt".equals(cookie.getName())) {
-                    jwt = cookie.getValue();
-                }
-            }
-        }
-        if (jwt == null) {
+        String email = resolveEmailFromRequest(request);
+        if (email == null) {
             return null;
         }
 
-        String email = jwtUtil.extractUsername(jwt);
         return userService.findByEmail(email);
+    }
+
+    private String resolveEmailFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+            String email = safelyExtractEmail(authHeader.substring(7));
+            if (email != null) {
+                return email;
+            }
+        }
+
+        if (request.getCookies() == null) {
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if (!"jwt".equals(cookie.getName())) {
+                continue;
+            }
+            String email = safelyExtractEmail(cookie.getValue());
+            if (email != null) {
+                return email;
+            }
+        }
+
+        return null;
+    }
+
+    private String safelyExtractEmail(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return null;
+        }
+        try {
+            return jwtUtil.extractUsername(jwt);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private static class ListingCreateRequest {
