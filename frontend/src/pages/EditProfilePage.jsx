@@ -14,7 +14,7 @@ const getInitials = (name) => {
 };
 
 const EditProfilePage = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [username, setUsername] = useState(user?.username || "Luka Hacek");
   const [bio, setBio] = useState(
     user?.description || "Board game collector & trader"
@@ -54,9 +54,12 @@ const EditProfilePage = () => {
               username: username,
               description: bio,
               location: location,
-              avatar: avatarDataUrl
+              //avatar: avatarDataUrl
           };
           const updatedUser = await updateProfile(payload);
+          if (setUser) {
+              setUser(updatedUser);
+          }
           setShowPopup(true);
       } catch (err) {
           console.error("Update failed:", err);
