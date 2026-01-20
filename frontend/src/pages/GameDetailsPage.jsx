@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { getGameById, getListingsByGameId } from "../utils/api";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
+import { deleteListingById } from "../utils/api";
+
 
 const resolveGameImage = (game) => {
   const name = game?.gameName?.toLowerCase().trim();
@@ -29,6 +31,24 @@ const GameDetailsPage = () => {
 
   const [showListings, setShowListings] = useState(false);
   const [openImage, setOpenImage] = useState({});
+
+
+  //Handle Admin Delete Listing
+  const handleDeleteListing = async (listingId) => {
+  if (!window.confirm("Are you sure you want to delete this listing?")) return;
+
+  try {
+    await deleteListingById(listingId);
+
+    setListings((prev) =>
+      prev.filter((l) => l.listingId !== listingId)
+    );
+  } catch (err) {
+    console.error("Failed to delete listing", err);
+    alert("Failed to delete listing");
+  }
+};
+
 
   // Fetch game details
   useEffect(() => {
@@ -216,6 +236,7 @@ const GameDetailsPage = () => {
                     listingUserId !== undefined &&
                     user?.userId !== undefined &&
                     Number(listingUserId) === Number(user.userId);
+                  const isAdmin = user?.role === "ADMIN";
 
                   return (
                     <div
@@ -260,7 +281,7 @@ const GameDetailsPage = () => {
                               : "Show image"}
                           </button>
 
-                          {!isOwnListing && (
+                          {!isOwnListing && !isAdmin && (
                             <Link
                               to={`/offer/${listing.listingId}`}
                               className="text-sm bg-vintage-accent text-white px-4 py-2 rounded-full hover:bg-amber-700"
@@ -268,6 +289,16 @@ const GameDetailsPage = () => {
                               Offer trade
                             </Link>
                           )}
+
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleDeleteListing(listing.listingId)}
+                              className="text-sm bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+                            >
+                              Delete listing
+                            </button>
+                          )}
+
                         </div>
                       </div>
 

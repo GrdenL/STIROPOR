@@ -19,7 +19,11 @@ const EditProfilePage = () => {
   const [bio, setBio] = useState(
     user?.description || "Board game collector & trader"
   );
-  const [location, setLocation] = useState("Zagreb, Croatia");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationResults, setLocationResults] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  // { label, lat, lon }
+
   const [avatarDataUrl, setAvatarDataUrl] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
 
@@ -33,6 +37,31 @@ const EditProfilePage = () => {
     const timer = setTimeout(() => setShowPopup(false), 2500);
     return () => clearTimeout(timer);
   }, [showPopup]);
+
+  //Reccomend Location
+  const searchLocation = async (query) => {
+  if (query.length < 3) {
+    setLocationResults([]);
+    return;
+  }
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      query
+    )}`
+  );
+
+  const data = await res.json();
+
+  setLocationResults(
+    data.map((item) => ({
+      label: item.display_name,
+      lat: item.lat,
+      lon: item.lon,
+    }))
+  );
+};
+
 
   const initials = useMemo(() => getInitials(username), [username]);
 
@@ -169,13 +198,32 @@ const EditProfilePage = () => {
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2">Location</label>
               <input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={locationQuery}
+                onChange={(e) => {
+                  setLocationQuery(e.target.value);
+                  searchLocation(e.target.value);
+                }}
                 type="text"
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-vintage-accent"
-                placeholder="e.g. Zagreb, Croatia"
-                required
+                className="w-full border rounded-xl px-4 py-3"
+                placeholder="Start typing your city..."
               />
+              {locationResults.length > 0 && (
+                  <ul className="border rounded-xl mt-2 bg-white max-h-48 overflow-y-auto">
+                    {locationResults.map((loc, i) => (
+                      <li
+                        key={i}
+                        onClick={() => {
+                          setSelectedLocation(loc);
+                          setLocationQuery(loc.label);
+                          setLocationResults([]);
+                        }}
+                        className="px-4 py-2 hover:bg-vintage-cream cursor-pointer text-sm"
+                      >
+                        {loc.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               <p className="text-xs text-vintage-brown/60 mt-2">
                 Your location helps match you with nearby traders
               </p>
