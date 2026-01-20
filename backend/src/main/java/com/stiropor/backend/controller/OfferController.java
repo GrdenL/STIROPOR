@@ -84,7 +84,7 @@ public class OfferController {
                     "OFFER_RECEVIED",
                     offer.getOfferId(),
                     "New offer for your game!",
-                    "User " + sender.getUsername() + "is offering you: "+games+"\nfor your: "
+                    "User " + sender.getUsername() + " is offering you: "+games+"\nfor your: "
                             + listingService.findByListingId(request.getRequestedListingId()).getGame().getGameName()
             );
 

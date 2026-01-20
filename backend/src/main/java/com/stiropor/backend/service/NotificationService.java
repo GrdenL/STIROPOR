@@ -36,7 +36,7 @@ public class NotificationService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
         message.setSubject("["+fromEmail+"] "+subject);
-        String formattedContent = "Dobili ste novu poruku od: " + fromEmail + "\n" + "-------------------------------------------\n\n" + body;
+        String formattedContent = "You received a message from: " + fromEmail + "\n" + "-------------------------------------------\n\n" + body;
         message.setText(formattedContent);
         message.setFrom(mailFrom);
         message.setReplyTo(fromEmail);
