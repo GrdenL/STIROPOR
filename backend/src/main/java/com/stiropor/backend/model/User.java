@@ -52,17 +52,17 @@ public class User {
 
     @ManyToMany
     @JoinTable(
-	name = "wishesFor",
-	joinColumns = @JoinColumn(name = "userId"),
-	inverseJoinColumns = @JoinColumn(name = "gameId")
+	name = "whishes_for",
+	joinColumns = @JoinColumn(name = "user_id"),
+	inverseJoinColumns = @JoinColumn(name = "game_id")
     )
     private List<Game> wishlist = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
-	name = "isInterested",
-	joinColumns = @JoinColumn(name = "userId"),
-	inverseJoinColumns = @JoinColumn(name = "genreId")
+	name = "is_intrested",
+	joinColumns = @JoinColumn(name = "user_id"),
+	inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
     private List<Genre> interestedGenres = new ArrayList<>();
 

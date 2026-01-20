@@ -39,9 +39,9 @@ public class Game{
 	
 	@ManyToMany
 	@JoinTable(
-		name = "isGenre",
-		joinColumns = @JoinColumn(name = "gameId"),
-		inverseJoinColumns = @JoinColumn(name = "genreId")
+		name = "is_genre",
+		joinColumns = @JoinColumn(name = "game_id"),
+		inverseJoinColumns = @JoinColumn(name = "genre_id")
 	)
 	private List<Genre> genres = new ArrayList<>();
 
