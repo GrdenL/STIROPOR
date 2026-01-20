@@ -130,8 +130,20 @@ public class UserController {
                     lon = Double.parseDouble(result.lon);
                 }
             }
-            if (updates.containsKey("avatar")) {
-
+            if (updates.containsKey("avatarUrl")) {
+                Object value = updates.get("avatarUrl");
+                String avatarUrl = value instanceof String ? ((String) value).trim() : null;
+                if (avatarUrl != null && avatarUrl.isEmpty()) {
+                    avatarUrl = null;
+                }
+                user.setAvatarUrl(avatarUrl);
+            } else if (updates.containsKey("avatar")) {
+                Object value = updates.get("avatar");
+                String avatarUrl = value instanceof String ? ((String) value).trim() : null;
+                if (avatarUrl != null && avatarUrl.isEmpty()) {
+                    avatarUrl = null;
+                }
+                user.setAvatarUrl(avatarUrl);
             }
 
             User savedUser = userService.save(user);

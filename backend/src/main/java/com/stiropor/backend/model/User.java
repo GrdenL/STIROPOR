@@ -34,6 +34,9 @@ public class User {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Column(name = "latitude", nullable = false)
     private Double latitude;
 
@@ -151,6 +154,14 @@ public class User {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public Double getLatitude() {
