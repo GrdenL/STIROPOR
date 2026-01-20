@@ -122,13 +122,13 @@ public class UserController {
             }
             if (updates.containsKey("location")) {
                 String locationString = (String) updates.get("location");
-                //NominatimService.LocationResponse result = nominatimService.geocode(locationString);
-                //double lat = 0.0;
-                //double lon = 0.0;
-                //if(result != null) {
-                //    lat = Double.parseDouble(result.lat);
-                //    lon = Double.parseDouble(result.lon);
-                //}
+                NominatimService.LocationResponse result = nominatimService.geocode(locationString);
+                double lat = 0.0;
+                double lon = 0.0;
+                if(result != null) {
+                    lat = Double.parseDouble(result.lat);
+                    lon = Double.parseDouble(result.lon);
+                }
             }
             if (updates.containsKey("avatar")) {
 
@@ -163,15 +163,15 @@ public class UserController {
                         .body("User with this email already exists");
             }
 
-            //NominatimService.LocationResponse result = nominatimService.geocode(location);
+            NominatimService.LocationResponse result = nominatimService.geocode(location);
 
             double lat = 0.0;
             double lon = 0.0;
 
-            //if(result != null) {
-            //    lat = Double.parseDouble(result.lat);
-            //    lon = Double.parseDouble(result.lon);
-            //}
+            if(result != null) {
+                lat = Double.parseDouble(result.lat);
+                lon = Double.parseDouble(result.lon);
+            }
             //mozemo dodati da ne radi ako je neispravna lokacija kasnije
 
             Town town = townService.findByName("Unknown");

@@ -23,7 +23,7 @@ public class NominatimService {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("User-Agent", "stiropor-app/1.0 (email@example.com)"); //TREBA POSTAVITI
+        headers.set("User-Agent", "stiropor-app/1.0 (stiropor.playtrade@gmail.com)");
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
