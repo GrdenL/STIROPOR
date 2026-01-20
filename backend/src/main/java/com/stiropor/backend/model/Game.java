@@ -1,5 +1,6 @@
 package com.stiropor.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ public class Game{
 	private List<Genre> genres = new ArrayList<>();
 
 	@ManyToMany(mappedBy = "wishlist")
+	@JsonIgnore
 	private List<User> wishedByUsers = new ArrayList<>();
 
 	public Game() {

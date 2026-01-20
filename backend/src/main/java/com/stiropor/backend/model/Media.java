@@ -1,6 +1,7 @@
 package com.stiropor.backend.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 
@@ -18,6 +19,7 @@ public class Media {
 
 	@ManyToOne
 	@JoinColumn(name = "userId", nullable = false)
+	@JsonIgnore
 	private User user;
 
 	public Media(){
