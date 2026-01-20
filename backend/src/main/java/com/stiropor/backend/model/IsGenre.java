@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 @Table(name = "is_genre")
 public class IsGenre {
     @EmbeddedId
-    private InterestedId id;
+    private IsGenreId id;
 
     @ManyToOne
     @MapsId("gameId")
@@ -25,6 +25,6 @@ public class IsGenre {
     public IsGenre(Game game, Genre genre) {
         this.game = game;
         this.genre = genre;
-        this.id = new InterestedId(game.getGameId(), genre.getGenreId());
+        this.id = new IsGenreId(game.getGameId(), genre.getGenreId());
     }
 }
