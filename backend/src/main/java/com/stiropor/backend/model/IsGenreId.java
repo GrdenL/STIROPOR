@@ -7,7 +7,7 @@ import java.util.Objects;
 
 @Embeddable
 public class IsGenreId {
-    @Column(name = "user_id")
+    @Column(name = "game_id")
     private Integer gameId;
 
     @Column(name = "genre_id")
