@@ -13,10 +13,10 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userid", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name = "googleid", unique = true)
+    @Column(name = "google_id", unique = true)
     private String googleId;
 
     @Column(name = "email", unique = true, nullable = false)
@@ -47,7 +47,7 @@ public class User {
     private Date createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "townid", nullable = false)
+    @JoinColumn(name = "town_id", nullable = false)
     private Town town;
 
     @ManyToMany
@@ -215,3 +215,4 @@ public class User {
 	this.interestedGenres = interestedGenres;
     }
 }
+
