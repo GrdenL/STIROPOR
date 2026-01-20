@@ -130,8 +130,20 @@ public class UserController {
                     lon = Double.parseDouble(result.lon);
                 }
             }
-            if (updates.containsKey("avatar")) {
-
+            if (updates.containsKey("avatarUrl")) {
+                Object value = updates.get("avatarUrl");
+                String avatarUrl = value instanceof String ? ((String) value).trim() : null;
+                if (avatarUrl != null && avatarUrl.isEmpty()) {
+                    avatarUrl = null;
+                }
+                user.setAvatarUrl(avatarUrl);
+            } else if (updates.containsKey("avatar")) {
+                Object value = updates.get("avatar");
+                String avatarUrl = value instanceof String ? ((String) value).trim() : null;
+                if (avatarUrl != null && avatarUrl.isEmpty()) {
+                    avatarUrl = null;
+                }
+                user.setAvatarUrl(avatarUrl);
             }
 
             User savedUser = userService.save(user);
@@ -174,11 +186,7 @@ public class UserController {
             }
             //mozemo dodati da ne radi ako je neispravna lokacija kasnije
 
-            Town town = townService.findByName("Unknown");
-            if (town == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Default town not found.");
-            }
+            Town town = getOrCreateUnknownTown();
 
             User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, lat, lon, town));
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
@@ -280,6 +288,21 @@ public class UserController {
         }
 
         return null;
+    }
+
+    private Town getOrCreateUnknownTown() {
+        Town town = townService.findByName("Unknown");
+        if (town != null) {
+            return town;
+        }
+
+        Country country = countryService.findById("Unknown");
+        if (country == null) {
+            country = new Country("Unknown");
+            countryService.save(country);
+        }
+
+        return townService.save(new Town("Unknown", country));
     }
 
     private Integer parseUserId(String subject) {

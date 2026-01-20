@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
   username VARCHAR NOT NULL,
   role VARCHAR NOT NULL,
   description VARCHAR,
+  avatar_url VARCHAR,
   latitude NUMERIC NOT NULL,
   longitude NUMERIC NOT NULL,
   created_at DATE NOT NULL,

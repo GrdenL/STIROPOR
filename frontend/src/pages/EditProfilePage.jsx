@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {updateProfile} from "../utils/api.js";
+import { updateProfile } from "../utils/api.js";
+
+const blobBaseUrl = import.meta.env.VITE_BLOB_BASE_URL;
+const blobSas = import.meta.env.VITE_BLOB_SAS;
 
 const getInitials = (name) => {
   const trimmed = name.trim();
@@ -19,17 +22,22 @@ const EditProfilePage = () => {
   const [bio, setBio] = useState(
     user?.description || "Board game collector & trader"
   );
-  const [locationQuery, setLocationQuery] = useState("");
-  const [locationResults, setLocationResults] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  // { label, lat, lon }
-
-  const [avatarDataUrl, setAvatarDataUrl] = useState(null);
+  const [location, setLocation] = useState("Zagreb, Croatia");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (user?.username) setUsername(user.username);
     if (user?.description) setBio(user.description);
+    if (user?.avatarUrl) setAvatarUrl(user.avatarUrl);
+    if (!user?.avatarUrl) setAvatarUrl("");
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+      setAvatarPreviewUrl(null);
+    }
+    setAvatarFile(null);
   }, [user]);
 
   useEffect(() => {
@@ -68,32 +76,84 @@ const EditProfilePage = () => {
   const handleAvatarChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setAvatarDataUrl(e.target.result);
-    };
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
+      return;
+    }
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreviewUrl(previewUrl);
+    setAvatarFile(file);
+  };
+
+  const uploadImage = async (file) => {
+    if (!blobBaseUrl || !blobSas) {
+      throw new Error("Missing blob storage configuration.");
+    }
+
+    const safeName = `avatar-${user?.userId || "user"}-${Date.now()}-${file.name.replace(
+      /[^a-zA-Z0-9._-]/g,
+      "_"
+    )}`;
+    const uploadUrl = `${blobBaseUrl}/${safeName}?${blobSas}`;
+
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "x-ms-blob-type": "BlockBlob",
+        "Content-Type": file.type || "application/octet-stream",
+      },
+      body: file,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with ${response.status}`);
+    }
+
+    return `${blobBaseUrl}/${safeName}`;
+  };
+
+  const clearAvatarPreview = () => {
+    if (avatarPreviewUrl) {
+      URL.revokeObjectURL(avatarPreviewUrl);
+    }
+    setAvatarPreviewUrl(null);
+    setAvatarFile(null);
   };
 
   const handleSubmit = async (event) => {
-      event.preventDefault();
+    event.preventDefault();
 
-      try {
-          const payload = {
-              username: username,
-              description: bio,
-              location: location,
-              //avatar: avatarDataUrl
-          };
-          const updatedUser = await updateProfile(payload);
-          if (setUser) {
-              setUser(updatedUser);
-          }
-          setShowPopup(true);
-      } catch (err) {
-          console.error("Update failed:", err);
-          alert("Došlo je do greške pri spremanju profila.");
+    try {
+      let nextAvatarUrl = avatarUrl;
+      if (avatarFile) {
+        nextAvatarUrl = await uploadImage(avatarFile);
       }
+
+      const payload = {
+        username,
+        description: bio,
+        location,
+        avatarUrl: nextAvatarUrl || null,
+      };
+      const updatedUser = await updateProfile(payload);
+      if (setUser) {
+        setUser(updatedUser);
+      }
+      setAvatarUrl(updatedUser?.avatarUrl || "");
+      clearAvatarPreview();
+      setShowPopup(true);
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Došlo je do greške pri spremanju profila.");
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarUrl("");
+    clearAvatarPreview();
   };
 
   return (
@@ -123,9 +183,9 @@ const EditProfilePage = () => {
               </label>
               <div className="relative inline-block">
                 <div className="w-32 h-32 mx-auto rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent text-4xl font-bold mb-4 overflow-hidden">
-                  {avatarDataUrl ? (
+                  {avatarPreviewUrl || avatarUrl ? (
                     <img
-                      src={avatarDataUrl}
+                      src={avatarPreviewUrl || avatarUrl}
                       alt="Avatar"
                       className="w-full h-full object-cover"
                     />
@@ -161,10 +221,10 @@ const EditProfilePage = () => {
                   </svg>
                 </label>
               </div>
-              {avatarDataUrl ? (
+              {avatarPreviewUrl || avatarUrl ? (
                 <button
                   type="button"
-                  onClick={() => setAvatarDataUrl(null)}
+                  onClick={handleRemoveAvatar}
                   className="text-red-500 text-sm font-medium hover:text-red-700 mt-2"
                 >
                   Remove Picture

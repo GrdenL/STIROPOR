@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -16,13 +17,28 @@ const ProfilePage = () => {
   const displayName = user?.username || "Luka Hacek";
   const bio = user?.description || "Board game collector & trader";
   const initials = getInitials(displayName);
+  const avatarUrl = user?.avatarUrl;
+  const [avatarFailed, setAvatarFailed] = useState(false);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [avatarUrl]);
 
   return (
     <div className="bg-vintage-cream text-vintage-brown font-roboto pt-24">
       <section className="bg-vintage-brown text-vintage-cream py-28 relative -mt-16">
         <div className="max-w-5xl mx-auto text-center px-4">
-          <div className="w-32 h-32 mx-auto rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent text-4xl font-bold mb-6">
-            {initials}
+          <div className="w-32 h-32 mx-auto rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent text-4xl font-bold mb-6 overflow-hidden">
+            {avatarUrl && !avatarFailed ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                onError={() => setAvatarFailed(true)}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
           </div>
           <h1 className="text-3xl font-playfair font-bold mt-4">
             {displayName}
