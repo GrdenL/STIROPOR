@@ -492,17 +492,25 @@ const AddEditGamePage = () => {
                     const gameName =
                       game.game?.gameName || game.gameName || "Unknown Game";
                     const isDeleting = deletingId === game.listingId;
+                    const isInactive = game.isActive === false;
 
                     return (
                       <div
                         key={`${game.listingId || index}`}
-                        className="bg-white p-5 rounded-xl shadow flex justify-between items-center hover:shadow-lg transition"
+                        className={`bg-white p-5 rounded-xl shadow flex justify-between items-center hover:shadow-lg transition ${
+                          isInactive ? "bg-gray-50 opacity-70" : ""
+                        }`}
                       >
                         <div className="flex-1">
                           <strong className="block text-lg">{gameName}</strong>
                           <span className="text-sm text-vintage-brown/70">
                             {game.condition}
                           </span>
+                          {isInactive && (
+                            <span className="ml-2 text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
+                              Inactive
+                            </span>
+                          )}
                           {game.media?.href && (
                             <span className="text-xs text-vintage-accent ml-2">
                               (1 image)

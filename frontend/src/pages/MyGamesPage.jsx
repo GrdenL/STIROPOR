@@ -232,72 +232,87 @@ const MyGamesPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filteredGames.map((game) => (
-                <div
-                  key={game.listingId ?? game.gameName}
-                  className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-pointer group relative"
-                  onClick={() => {
-                    const detailId =
-                      game.gameId ?? game.game?.gameId ?? game.listingId;
-                    if (detailId !== undefined && detailId !== null) {
-                      navigate(`/games/${detailId}`);
-                    }
-                  }}
-                >
-                  <span className="absolute top-3 right-3 text-xs text-vintage-brown/70 bg-vintage-cream px-2 py-1 rounded-full border border-vintage-brown/10">
-                    Moj listing
-                  </span>
-                  <div className="h-40 bg-vintage-cream rounded-xl mb-4 flex items-center justify-center overflow-hidden border border-vintage-brown/10">
-                    {game.mediaHref ? (
-                      <img
-                        src={game.mediaHref}
-                        alt={game.gameName || "Listing image"}
-                        className="h-full w-full object-contain p-2"
-                      />
-                    ) : (
-                      <span className="text-4xl text-vintage-brown/40">🎲</span>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-medium mb-1">
-                    {game.gameName || "Untitled game"}
-                  </h3>
-                  <p className="text-sm opacity-80 mb-3">
-                    {game.description || "Listing"}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full ${
-                        conditionBadges[game.condition] ||
-                        "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {game.condition}
-                    </span>
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/add-edit/${game.listingId}`);
-                        }}
-                        className="text-vintage-accent hover:text-amber-700 text-sm font-medium"
+              {filteredGames.map((game) => {
+                const isInactive = game.isActive === false;
+
+                return (
+                  <div
+                    key={game.listingId ?? game.gameName}
+                    className={`bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-pointer group relative ${
+                      isInactive ? "bg-gray-50 opacity-70" : ""
+                    }`}
+                    onClick={() => {
+                      const detailId =
+                        game.gameId ?? game.game?.gameId ?? game.listingId;
+                      if (detailId !== undefined && detailId !== null) {
+                        navigate(`/games/${detailId}`);
+                      }
+                    }}
+                  >
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      <span className="text-xs text-vintage-brown/70 bg-vintage-cream px-2 py-1 rounded-full border border-vintage-brown/10">
+                        Moj listing
+                      </span>
+                      {isInactive && (
+                        <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full border border-gray-200">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    <div className="h-40 bg-vintage-cream rounded-xl mb-4 flex items-center justify-center overflow-hidden border border-vintage-brown/10">
+                      {game.mediaHref ? (
+                        <img
+                          src={game.mediaHref}
+                          alt={game.gameName || "Listing image"}
+                          className="h-full w-full object-contain p-2"
+                        />
+                      ) : (
+                        <span className="text-4xl text-vintage-brown/40">
+                          🎲
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">
+                      {game.gameName || "Untitled game"}
+                    </h3>
+                    <p className="text-sm opacity-80 mb-3">
+                      {game.description || "Listing"}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-xs px-3 py-1 rounded-full ${
+                          conditionBadges[game.condition] ||
+                          "bg-gray-100 text-gray-700"
+                        }`}
                       >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => handleDelete(game.listingId, e)}
-                        disabled={deletingId === game.listingId}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {deletingId === game.listingId
-                          ? "Deleting..."
-                          : "Delete"}
-                      </button>
+                        {game.condition}
+                      </span>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/add-edit/${game.listingId}`);
+                          }}
+                          className="text-vintage-accent hover:text-amber-700 text-sm font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDelete(game.listingId, e)}
+                          disabled={deletingId === game.listingId}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {deletingId === game.listingId
+                            ? "Deleting..."
+                            : "Delete"}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
