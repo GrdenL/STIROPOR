@@ -23,6 +23,8 @@ const EditProfilePage = () => {
     user?.description || "Board game collector & trader"
   );
   const [location, setLocation] = useState("Zagreb, Croatia");
+  const [locationQuery, setLocationQuery] = useState("Zagreb, Croatia");
+  const [locationResults, setLocationResults] = useState([]);
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(null);
@@ -33,6 +35,15 @@ const EditProfilePage = () => {
     if (user?.description) setBio(user.description);
     if (user?.avatarUrl) setAvatarUrl(user.avatarUrl);
     if (!user?.avatarUrl) setAvatarUrl("");
+    const nextLocation =
+      user?.location ||
+      (user?.town?.townName
+        ? `${user.town.townName}${user?.town?.country?.countryName ? `, ${user.town.country.countryName}` : ""}`
+        : null);
+    if (nextLocation) {
+      setLocation(nextLocation);
+      setLocationQuery(nextLocation);
+    }
     if (avatarPreviewUrl) {
       URL.revokeObjectURL(avatarPreviewUrl);
       setAvatarPreviewUrl(null);
@@ -48,27 +59,27 @@ const EditProfilePage = () => {
 
   //Reccomend Location
   const searchLocation = async (query) => {
-  if (query.length < 3) {
-    setLocationResults([]);
-    return;
-  }
+    if (query.length < 3) {
+      setLocationResults([]);
+      return;
+    }
 
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-      query
-    )}`
-  );
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        query
+      )}`
+    );
 
-  const data = await res.json();
+    const data = await res.json();
 
-  setLocationResults(
-    data.map((item) => ({
-      label: item.display_name,
-      lat: item.lat,
-      lon: item.lon,
-    }))
-  );
-};
+    setLocationResults(
+      data.map((item) => ({
+        label: item.display_name,
+        lat: item.lat,
+        lon: item.lon,
+      }))
+    );
+  };
 
 
   const initials = useMemo(() => getInitials(username), [username]);
@@ -261,6 +272,7 @@ const EditProfilePage = () => {
                 value={locationQuery}
                 onChange={(e) => {
                   setLocationQuery(e.target.value);
+                  setLocation(e.target.value);
                   searchLocation(e.target.value);
                 }}
                 type="text"
@@ -273,8 +285,8 @@ const EditProfilePage = () => {
                       <li
                         key={i}
                         onClick={() => {
-                          setSelectedLocation(loc);
                           setLocationQuery(loc.label);
+                          setLocation(loc.label);
                           setLocationResults([]);
                         }}
                         className="px-4 py-2 hover:bg-vintage-cream cursor-pointer text-sm"
