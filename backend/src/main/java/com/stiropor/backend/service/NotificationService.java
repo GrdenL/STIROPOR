@@ -47,6 +47,20 @@ public class NotificationService {
             logger.warn("Failed to send notification email from {} to {}", fromEmail, toEmail, e);
         }
     }
+    public void sendWishListEmail(String toEmail, String subject, String body) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(body);
+        message.setFrom(mailFrom);
+
+        try {
+            mailSender.send(message);
+        } catch (Exception e) {
+            logger.warn("Failed to send notification email from to {}", toEmail, e);
+        }
+    }
+
 
     public void createAndSendNotification(User recipient, String senderEmail, String type, Integer payloadId, String subject, String body) {
         Notification notification = new Notification();

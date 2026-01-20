@@ -28,4 +28,10 @@ public class WishListService {
     public List<Game> findByUserId(Integer userId) {
         return wishListRepository.findGamesByUserId(userId);
     }
+    public List<User> findByGameId(Integer gameId) {
+        return wishListRepository.findUsersByGameId(gameId);
+    }
+    public List<User> findByGame(Game game) {
+        return wishListRepository.findUsersByGame(game);
+    }
 }

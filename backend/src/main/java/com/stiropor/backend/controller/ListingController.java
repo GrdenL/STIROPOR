@@ -4,10 +4,7 @@ import com.stiropor.backend.model.Game;
 import com.stiropor.backend.model.Listing;
 import com.stiropor.backend.model.Media;
 import com.stiropor.backend.model.User;
-import com.stiropor.backend.service.GameService;
-import com.stiropor.backend.service.ListingService;
-import com.stiropor.backend.service.MediaService;
-import com.stiropor.backend.service.UserService;
+import com.stiropor.backend.service.*;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,17 +25,23 @@ public class ListingController {
     private final MediaService mediaService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final NotificationService notificationService;
+    private final WishListService wishListService;
 
     public ListingController(ListingService listingService,
                              GameService gameService,
                              MediaService mediaService,
                              UserService userService,
-                             JwtUtil jwtUtil) {
+                             JwtUtil jwtUtil,
+                             NotificationService notificationService,
+                             WishListService wishListService) {
         this.listingService = listingService;
         this.gameService = gameService;
         this.mediaService = mediaService;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.notificationService = notificationService;
+        this.wishListService = wishListService;
     }
 
     @GetMapping("/me")
@@ -69,7 +72,7 @@ public class ListingController {
         }
 
         Media media = null;
-//        media = mediaService.save(new Media("random media", user));
+//      media = mediaService.save(new Media("random media", user));
         if (body.mediaHref != null && !body.mediaHref.isBlank()) {
             media = mediaService.save(new Media(body.mediaHref, user));
         }
@@ -77,6 +80,18 @@ public class ListingController {
         if (game == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Game not found");
+        }
+
+        List<User> wishListUsers = wishListService.findByGame(game);
+        if (!wishListUsers.isEmpty()) {
+            for (User wishUser : wishListUsers){
+                notificationService.sendWishListEmail(
+                        wishUser.getEmail(),
+                        "The game you wishlisted is available!",
+                        "The user " + user.getUsername() + "has listed your wishlisted game: " +
+                                game.getGameName() + "!"
+                );
+            }
         }
 
         Listing listing = new Listing(body.condition, true, body.description, user, game, media);
