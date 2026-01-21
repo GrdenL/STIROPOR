@@ -82,7 +82,7 @@ public class ListingController {
                     .body("Game not found");
         }
 
-        List<User> wishListUsers = wishListService.findByGame(game);
+        /*List<User> wishListUsers = wishListService.findByGame(game);
         if (!wishListUsers.isEmpty()) {
             for (User wishUser : wishListUsers){
                 notificationService.sendWishListEmail(
@@ -92,7 +92,7 @@ public class ListingController {
                                 game.getGameName() + "!"
                 );
             }
-        }
+        }*/
 
         Listing listing = new Listing(body.condition, true, body.description, user, game, media);
         Listing saved = listingService.save(listing);

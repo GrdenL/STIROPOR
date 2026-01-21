@@ -252,8 +252,10 @@ const WishlistPage = () => {
                   <img
                       src={resolveGameImage(game)}
                       alt={game.gameName}
-                      className="w-10 h-10 rounded-md object-cover bg-vintage-accent/10"
-                      onError={(e) => { e.target.src = logo; }} 
+                      onError={(e) => {
+                        e.target.src = logo;
+                      }}
+                      className="max-h-full max-w-full object-contain"
                   />
                   <h3 className="text-xl font-medium mb-1">{game.gameName}</h3>
                   <p className="text-sm opacity-80">
