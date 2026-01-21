@@ -14,8 +14,8 @@ const getInitials = (name) => {
 
 const ProfilePage = () => {
   const { user } = useAuth();
-  const displayName = user?.username || "Luka Hacek";
-  const bio = user?.description || "Board game collector & trader";
+  const displayName = user?.username || "<User>";
+  const bio = user?.description || "<Description>";
   const initials = getInitials(displayName);
   const avatarUrl = user?.avatarUrl;
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -25,8 +25,8 @@ const ProfilePage = () => {
   }, [avatarUrl]);
 
   return (
-    <div className="bg-vintage-cream text-vintage-brown font-roboto pt-24">
-      <section className="bg-vintage-brown text-vintage-cream py-28 relative -mt-16">
+    <div className="bg-vintage-cream text-vintage-brown font-roboto">
+      <section className="bg-vintage-brown text-vintage-cream pt-28 pb-20 -mt-20">
         <div className="max-w-5xl mx-auto text-center px-4">
           <div className="w-32 h-32 mx-auto rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent text-4xl font-bold mb-6 overflow-hidden">
             {avatarUrl && !avatarFailed ? (
@@ -48,7 +48,12 @@ const ProfilePage = () => {
             to="/profile/edit"
             className="inline-flex items-center gap-2 bg-vintage-accent/20 text-vintage-cream border border-vintage-accent/40 px-6 py-2 rounded-full hover:bg-vintage-accent/30 transition"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
