@@ -18,6 +18,7 @@ const MyGamesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [condition, setCondition] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [showInactive, setShowInactive] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
 
@@ -80,6 +81,9 @@ const MyGamesPage = () => {
   const filteredGames = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     const filtered = listings.filter((game) => {
+      if (!showInactive && game.isActive === false) {
+        return false;
+      }
       const matchesSearch = (game.gameName || "").toLowerCase().includes(term);
       const matchesCondition = !condition || game.condition === condition;
       return matchesSearch && matchesCondition;
@@ -141,7 +145,7 @@ const MyGamesPage = () => {
               </svg>
             </div>
 
-            <div className="flex gap-3 w-full md:w-auto">
+            <div className="flex flex-wrap gap-3 w-full md:w-auto">
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
@@ -164,6 +168,13 @@ const MyGamesPage = () => {
                 <option value="condition">Sort by Condition</option>
                 <option value="players">Sort by Listing</option>
               </select>
+              <button
+                type="button"
+                onClick={() => setShowInactive((prev) => !prev)}
+                className="flex-1 md:flex-none border rounded-xl px-4 py-3 text-sm text-vintage-brown hover:border-vintage-accent hover:text-vintage-accent transition"
+              >
+                {showInactive ? "Hide inactive listings" : "Show inactive listings"}
+              </button>
             </div>
           </div>
 
