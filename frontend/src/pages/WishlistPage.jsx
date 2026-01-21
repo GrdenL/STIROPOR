@@ -249,14 +249,14 @@ const WishlistPage = () => {
                   key={game.id}
                   className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-default text-left"
                 >
-                  <img
-                      src={resolveGameImage(game)}
-                      alt={game.gameName}
-                      onError={(e) => {
-                        e.target.src = logo;
-                      }}
-                      className="max-h-full max-w-full object-contain"
-                  />
+                    <img
+                        src={resolveGameImage(game)}
+                        alt={game.gameName}
+                        onError={(e) => {
+                          e.target.src = logo;
+                        }}
+                        className="h-40 bg-vintage-accent/20 rounded-xl mb-4 flex items-center justify-center text-4xl"
+                    />
                   <h3 className="text-xl font-medium mb-1">{game.gameName}</h3>
                   <p className="text-sm opacity-80">
                     {game.maxMinPlayers} Players · {game.yearPublished}

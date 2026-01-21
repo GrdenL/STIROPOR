@@ -82,17 +82,20 @@ public class ListingController {
                     .body("Game not found");
         }
 
-        /*List<User> wishListUsers = wishListService.findByGame(game);
+        List<User> wishListUsers = wishListService.findByGame(game);
         if (!wishListUsers.isEmpty()) {
             for (User wishUser : wishListUsers){
-                notificationService.sendWishListEmail(
-                        wishUser.getEmail(),
-                        "The game you wishlisted is available!",
-                        "The user " + user.getUsername() + "has listed your wishlisted game: " +
-                                game.getGameName() + "!"
-                );
+                if (wishUser.getId() != user.getId()){
+                    notificationService.sendWishListEmail(
+                            wishUser.getEmail(),
+                            "The game you wishlisted is available!",
+                            "The user " + user.getUsername() + "has listed your wishlisted game: " +
+                                    game.getGameName() + "!"
+                    );
+                }
+
             }
-        }*/
+        }
 
         Listing listing = new Listing(body.condition, true, body.description, user, game, media);
         Listing saved = listingService.save(listing);

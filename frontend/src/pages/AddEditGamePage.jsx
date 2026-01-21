@@ -186,6 +186,7 @@ const AddEditGamePage = () => {
 
     const payload = {
       gameId: matchedGame.gameId,
+      gameName: matchedGame.gameName,
       condition,
       description: "",
     };
