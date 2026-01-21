@@ -89,7 +89,7 @@ public class ListingController {
                     notificationService.sendWishListEmail(
                             wishUser.getEmail(),
                             "The game you wishlisted is available!",
-                            "The user " + user.getUsername() + "has listed your wishlisted game: " +
+                            "The user " + user.getUsername() + " has listed your wishlisted game: " +
                                     game.getGameName() + "!"
                     );
                 }
@@ -150,16 +150,6 @@ public class ListingController {
                 return existing;
             }
 
-            Game created = new Game(
-                    body.gameName.trim(),
-                    "Unknown",
-                    "1-4",
-                    0,
-                    0,
-                    0,
-                    media
-            );
-            return gameService.save(created);
         }
         return null;
     }
