@@ -49,7 +49,7 @@ const MyGamesPage = () => {
 
     if (
       !window.confirm(
-        "Are you sure you want to delete this listing? This action cannot be undone."
+        "Are you sure you want to delete this listing? This action cannot be undone.",
       )
     ) {
       return;
@@ -64,7 +64,7 @@ const MyGamesPage = () => {
       if (success) {
         // Remove the deleted listing from state
         setListings((prevListings) =>
-          prevListings.filter((listing) => listing.listingId !== listingId)
+          prevListings.filter((listing) => listing.listingId !== listingId),
         );
       } else {
         setDeleteError("Failed to delete listing. Please try again.");
@@ -87,7 +87,7 @@ const MyGamesPage = () => {
 
     if (sortBy === "name") {
       filtered.sort((a, b) =>
-        (a.gameName || "").localeCompare(b.gameName || "")
+        (a.gameName || "").localeCompare(b.gameName || ""),
       );
     } else if (sortBy === "condition") {
       const order = { New: 1, "Like New": 2, Good: 3, Acceptable: 4, Poor: 5 };
@@ -288,16 +288,6 @@ const MyGamesPage = () => {
                         {game.condition}
                       </span>
                       <div className="flex gap-3">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/add-edit/${game.listingId}`);
-                          }}
-                          className="text-vintage-accent hover:text-amber-700 text-sm font-medium"
-                        >
-                          Edit
-                        </button>
                         <button
                           type="button"
                           onClick={(e) => handleDelete(game.listingId, e)}

@@ -147,7 +147,12 @@ const MyTradesPage = () => {
               const partnerUserId = isReceived ? fromUserId : toUserId;
               const yourListing = isReceived ? targetListing : offeredListing;
               const theirListing = isReceived ? offeredListing : targetListing;
-              const listingPartner = [theirListing?.owner, theirListing?.user].find(
+              const listingPartner = [
+                theirListing?.owner,
+                theirListing?.user,
+                yourListing?.owner,
+                yourListing?.user,
+              ].find(
                   (candidate) =>
                       candidate &&
                       (partnerUserId === null ||
@@ -387,6 +392,23 @@ const MyTradesPage = () => {
     }
   };
 
+  const selectedTradeSummary = selectedTrade
+      ? {
+        wantGame: selectedTrade.isReceived
+            ? selectedTrade.yourGame
+            : selectedTrade.theirGame,
+        wantCondition: selectedTrade.isReceived
+            ? selectedTrade.yourCondition
+            : selectedTrade.theirCondition,
+        offerGame: selectedTrade.isReceived
+            ? selectedTrade.theirGame
+            : selectedTrade.yourGame,
+        offerCondition: selectedTrade.isReceived
+            ? selectedTrade.theirCondition
+            : selectedTrade.yourCondition,
+      }
+      : null;
+
   if (loading) {
     return (
         <div className="bg-vintage-cream min-h-screen flex items-center justify-center">
@@ -558,6 +580,11 @@ const MyTradesPage = () => {
                   {filteredTrades.map((trade) => {
                     const status = statusConfig[trade.status];
                     const isReceived = trade.isReceived;
+                    const wantGame = isReceived ? trade.yourGame : trade.theirGame;
+                    const offerGame = isReceived ? trade.theirGame : trade.yourGame;
+                    const offerCondition = isReceived
+                        ? trade.theirCondition
+                        : trade.yourCondition;
 
                     return (
                         <div
@@ -604,17 +631,17 @@ const MyTradesPage = () => {
                         <span className="text-vintage-brown/60">
                           {isReceived ? "They want your:" : "You want their:"}
                         </span>{" "}
-                              <span className="font-medium">{trade.yourGame}</span>
+                              <span className="font-medium">{wantGame}</span>
                             </p>
                             <div className="border-t border-vintage-brown/10 my-2" />
                             <p className="text-sm">
                         <span className="text-vintage-brown/60">
                           {isReceived ? "They offer:" : "You offer:"}
                         </span>{" "}
-                              <span className="font-medium">{trade.theirGame}</span>
+                              <span className="font-medium">{offerGame}</span>
                             </p>
                             <p className="text-xs text-vintage-brown/50 mt-1">
-                              Condition: {trade.theirCondition}
+                              Condition: {offerCondition}
                             </p>
                           </div>
 
@@ -744,12 +771,12 @@ const MyTradesPage = () => {
                             : "You want their:"}
                       </p>
                       <h4 className="text-lg font-medium mb-2">
-                        {selectedTrade.yourGame}
+                        {selectedTradeSummary?.wantGame}
                       </h4>
                       <p className="text-xs text-vintage-brown/60">
                         Condition:{" "}
                         <span className="font-medium">
-                      {selectedTrade.yourCondition}
+                      {selectedTradeSummary?.wantCondition}
                     </span>
                       </p>
                     </div>
@@ -758,12 +785,12 @@ const MyTradesPage = () => {
                         {selectedTrade.isReceived ? "You receive:" : "You offer:"}
                       </p>
                       <h4 className="text-lg font-medium mb-2">
-                        {selectedTrade.theirGame}
+                        {selectedTradeSummary?.offerGame}
                       </h4>
                       <p className="text-xs text-vintage-brown/60">
                         Condition:{" "}
                         <span className="font-medium">
-                      {selectedTrade.theirCondition}
+                      {selectedTradeSummary?.offerCondition}
                     </span>
                       </p>
                     </div>

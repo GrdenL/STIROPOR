@@ -223,7 +223,9 @@ const GameDetailsPage = () => {
                 ? "Loading listings..."
                 : hasListings
                 ? `View listings (${listings.length})`
-                : "No listings available"}
+                : user
+                ? "No listings available"
+                : "Please log in to see listings"}
             </button>
 
             {/* LISTINGS */}
