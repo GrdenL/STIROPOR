@@ -224,7 +224,7 @@ const GamesPage = () => {
 
                   <div className="flex justify-end mt-4">
                     <Link
-                      to={`/games/${game.id}`}
+                      to={`/games/${game.gameId ||game.id}`}
                       className="text-sm font-medium text-vintage-accent hover:underline"
                     >
                       View details →
