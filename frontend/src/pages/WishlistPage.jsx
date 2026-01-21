@@ -184,7 +184,7 @@ const WishlistPage = () => {
                   ) : (
                     suggestions.map((game) => (
                       <button
-                        key={game.id}
+                        key={game.gameId || game.id}
                         type="button"
                         onClick={() => addToWishlist(game)}
                         className="w-full text-left px-4 py-3 hover:bg-vintage-cream transition flex items-center gap-3"
@@ -246,7 +246,7 @@ const WishlistPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {wishlist.map((game) => (
                 <div
-                  key={game.id}
+                  key={game.id || game.gameId}
                   className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-default text-left"
                 >
                     <img
@@ -263,7 +263,7 @@ const WishlistPage = () => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => removeFromWishlist(game.id)}
+                    onClick={() => removeFromWishlist(game.id || game.gameId)}
                     className="mt-4 text-red-500 text-sm font-medium hover:text-red-700"
                   >
                     Remove
