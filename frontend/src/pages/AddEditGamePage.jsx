@@ -145,7 +145,7 @@ const AddEditGamePage = () => {
 
     const safeName = `${Date.now()}-${file.name.replace(
       /[^a-zA-Z0-9._-]/g,
-      "_"
+      "_",
     )}`;
     const uploadUrl = `${blobBaseUrl}/${safeName}?${blobSas}`;
 
@@ -176,7 +176,7 @@ const AddEditGamePage = () => {
 
     // Find the game in available games to get the gameId
     const matchedGame = availableGames.find(
-      (g) => g.gameName.toLowerCase() === trimmedName.toLowerCase()
+      (g) => g.gameName.toLowerCase() === trimmedName.toLowerCase(),
     );
 
     if (!matchedGame) {
@@ -214,7 +214,7 @@ const AddEditGamePage = () => {
   const handleDelete = async (listingId, gameName) => {
     if (
       !window.confirm(
-        `Are you sure you want to delete "${gameName}"? This action cannot be undone.`
+        `Are you sure you want to delete "${gameName}"? This action cannot be undone.`,
       )
     ) {
       return;
@@ -229,7 +229,7 @@ const AddEditGamePage = () => {
       if (success) {
         // Remove the deleted listing from state
         setGames((prevGames) =>
-          prevGames.filter((game) => game.listingId !== listingId)
+          prevGames.filter((game) => game.listingId !== listingId),
         );
         setSuccessMessage(`"${gameName}" deleted successfully!`);
       } else {

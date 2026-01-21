@@ -59,7 +59,7 @@ const OfferTradePage = () => {
 
   const toggleListing = (id) => {
     setSelectedListings((prev) =>
-      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
     );
   };
 

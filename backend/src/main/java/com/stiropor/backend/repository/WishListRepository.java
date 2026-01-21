@@ -19,6 +19,6 @@ public interface WishListRepository extends JpaRepository<WishList, WishListId>{
     @Query("SELECT w.user FROM WishList w WHERE w.game = :game")
     List<User> findUsersByGame(@Param("game") Game game);
 
-    @Query("SELECT w.user FROM WishList w WHERE w.id.gameId = :gameId")
+    @Query("SELECT w.user FROM WishList w WHERE w.game.gameId = :gameId")
     List<User> findUsersByGameId(@Param("gameId") Integer gameId);
 }
