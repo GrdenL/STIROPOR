@@ -328,5 +328,42 @@ export const register = async (email, username, password, location) => {
 }
 
 
+export const getMyWishlist = async () => {
+  try {
+    const res = await api.get("/wishlist/my-wishlist", { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Get my wishlist failed:", err);
+    // Return empty array instead of null
+    return [];
+  }
+};
+
+export const addWishlist = async (gameId) => {
+  try {
+    const res = await api.post(`/wishlist/add/${gameId}`, {}, {
+      withCredentials: true,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Add to wishlist failed:", err);
+    throw err;
+  }
+};
+
+export const removeWishlist = async (gameId) => {
+  try {
+    const res = await api.delete(`/wishlist/remove/${gameId}`, {
+      withCredentials: true
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Remove from wishlist failed:", err);
+    throw err;
+  }
+};
+
+
 
 export default api;

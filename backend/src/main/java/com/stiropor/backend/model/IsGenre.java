@@ -25,6 +25,6 @@ public class IsGenre {
     public IsGenre(Game game, Genre genre) {
         this.game = game;
         this.genre = genre;
-        this.id = new IsGenreId(game.getGameId(), genre.getGenreId());
+        this.id = new IsGenreId(game.getId(), genre.getGenreId());
     }
 }

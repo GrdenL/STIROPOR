@@ -72,10 +72,10 @@ public class ListingController {
         }
 
         Media media = null;
-//      media = mediaService.save(new Media("random media", user));
-        if (body.mediaHref != null && !body.mediaHref.isBlank()) {
+        media = mediaService.save(new Media("random media", user));
+        /*if (body.mediaHref != null && !body.mediaHref.isBlank()) {
             media = mediaService.save(new Media(body.mediaHref, user));
-        }
+        }*/
         Game game = resolveGame(body, media);
         if (game == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -267,7 +267,7 @@ public class ListingController {
             response.isActive = listing.getIsActive();
             response.description = listing.getDescription();
             if (listing.getGame() != null) {
-                response.gameId = listing.getGame().getGameId();
+                response.gameId = listing.getGame().getId();
                 response.gameName = listing.getGame().getGameName();
             }
             if (listing.getMedia() != null) {

@@ -25,7 +25,35 @@ public class WishList {
     public WishList(User user, Game game) {
         this.user = user;
         this.game = game;
-        this.id = new WishListId(user.getUserId(), game.getGameId());
+        this.id = new WishListId(user.getUserId(), game.getId());
     }
+
+    public WishListId getId() {
+        return id;
+    }
+
+    public void setId(WishListId id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public void setGame(Game game) {
+        this.game = game;
+    }
+
+
+
+
 }
 

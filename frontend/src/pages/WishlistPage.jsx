@@ -1,94 +1,143 @@
 import { useEffect, useMemo, useState } from "react";
-
-const gameDatabase = [
-  { name: "Catan", players: "3–4 players", age: "Age 10+", emoji: "🎲" },
-  { name: "Catan: Seafarers", players: "3–4 players", age: "Age 10+", emoji: "⛵" },
-  { name: "Catan: Cities & Knights", players: "3–4 players", age: "Age 10+", emoji: "🏰" },
-  { name: "Ticket to Ride", players: "2–5 players", age: "Age 8+", emoji: "🚂" },
-  { name: "Pandemic", players: "2–4 players", age: "Age 8+", emoji: "🦠" },
-  { name: "Azul", players: "2–4 players", age: "Age 8+", emoji: "🎨" },
-  { name: "Splendor", players: "2–4 players", age: "Age 10+", emoji: "💎" },
-  { name: "7 Wonders", players: "2–7 players", age: "Age 10+", emoji: "🏛️" },
-  { name: "Dominion", players: "2–4 players", age: "Age 13+", emoji: "👑" },
-  { name: "Carcassonne", players: "2–5 players", age: "Age 7+", emoji: "🗺️" },
-  { name: "Terraforming Mars", players: "1–5 players", age: "Age 12+", emoji: "🔴" },
-  { name: "Scythe", players: "1–5 players", age: "Age 14+", emoji: "⚙️" },
-  { name: "Wingspan", players: "1–5 players", age: "Age 10+", emoji: "🦅" },
-  { name: "Gloomhaven", players: "1–4 players", age: "Age 14+", emoji: "⚔️" },
-  { name: "Root", players: "2–4 players", age: "Age 10+", emoji: "🦊" },
-];
+import {
+  getAllGames,
+  addWishlist,
+  removeWishlist,
+  getMyWishlist,
+} from "../utils/api";
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
+  const [allGames, setAllGames] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectMode, setSelectMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(new Set());
   const [popup, setPopup] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch all games and user's wishlist
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch all games
+      const games = await getAllGames();
+      setAllGames(games);
+      console.log("All games:", games);
+
+      // Fetch current user's wishlist
+      const userWishlist = await getMyWishlist();
+      console.log("Wishlist:", userWishlist);
+      setWishlist(userWishlist);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setPopup({ message: "Failed to load data", color: "bg-red-500" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Auto-dismiss popup
   useEffect(() => {
     if (!popup) return undefined;
     const timer = setTimeout(() => setPopup(null), 2500);
     return () => clearTimeout(timer);
   }, [popup]);
 
+  // Create a map of game IDs to game data for quick lookup
+  const gameMap = useMemo(() => {
+    const map = new Map();
+    allGames.forEach((game) => {
+      map.set(game.id, game);
+    });
+    return map;
+  }, [allGames]);
+
+  // Search suggestions
   const suggestions = useMemo(() => {
     const query = searchTerm.toLowerCase().trim();
     if (!query) return [];
-    return gameDatabase.filter(
+
+    // Get game IDs already in wishlist
+    const wishlistGameIds = new Set(wishlist.map((item) => item.gameId));
+
+    // Filter games that match search and aren't already in wishlist
+    return allGames.filter(
       (game) =>
-        game.name.toLowerCase().includes(query) &&
-        !wishlist.find((item) => item.name === game.name)
+        (game.gameName || game.name || "").toLowerCase().includes(query) &&
+        !wishlistGameIds.has(game.id),
     );
-  }, [searchTerm, wishlist]);
+  }, [searchTerm, allGames, wishlist]);
 
-  const toggleSelection = (id) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
+  // Add game to wishlist
+  const addToWishlist = async (game) => {
+    try {
+      console.log("Adding game to wishlist:", game);
 
-  const addToWishlist = (game) => {
-    setWishlist((prev) => [...prev, { ...game, id: Date.now() }]);
-    setSearchTerm("");
-    setPopup({ message: "Game added to wishlist ✔", color: "bg-emerald-500" });
-  };
+      // Add to wishlist via API
+      await addWishlist(game.id);
 
-  const removeFromWishlist = (id) => {
-    if (!window.confirm("Remove this game from your wishlist?")) return;
-    setWishlist((prev) => prev.filter((game) => game.id !== id));
-    setPopup({ message: "Game removed", color: "bg-red-500" });
-  };
+      // Refetch data to get the latest wishlist
+      await fetchData();
 
-  const removeSelected = () => {
-    if (selectedIds.size === 0) return;
-    if (!window.confirm(`Delete ${selectedIds.size} game(s) from wishlist?`)) {
-      return;
+      setSearchTerm("");
+      setPopup({
+        message: "Game added to wishlist ✔",
+        color: "bg-emerald-500",
+      });
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      setPopup({
+        message: "Failed to add game to wishlist",
+        color: "bg-red-500",
+      });
     }
-    setWishlist((prev) => prev.filter((game) => !selectedIds.has(game.id)));
-    setPopup({
-      message: `${selectedIds.size} game(s) removed`,
-      color: "bg-red-500",
-    });
-    setSelectedIds(new Set());
-    setSelectMode(false);
   };
+
+  // Remove game from wishlist
+  const removeFromWishlist = async (wishlistId) => {
+    if (!window.confirm("Remove this game from your wishlist?")) return;
+
+    try {
+      // Remove from wishlist via API
+      await removeWishlist(wishlistId);
+
+      // Refetch data to get the latest wishlist
+      await fetchData();
+
+      setPopup({ message: "Game removed", color: "bg-red-500" });
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      setPopup({ message: "Failed to remove game", color: "bg-red-500" });
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="bg-vintage-cream text-vintage-brown font-roboto min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-vintage-brown/20 border-t-vintage-accent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-vintage-brown/60">Loading your wishlist...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-vintage-cream text-vintage-brown font-roboto">
-      {popup ? (
+      {/* Popup Notification */}
+      {popup && (
         <div
           className={`fixed top-24 right-6 ${popup.color} text-white px-6 py-4 rounded-xl shadow-2xl z-[60]`}
         >
           {popup.message}
         </div>
-      ) : null}
+      )}
 
+      {/* Hero Section */}
       <section className="bg-vintage-brown text-vintage-cream pt-32 pb-28">
         <div className="max-w-5xl mx-auto text-center px-4 translate-y-8">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-vintage-accent/20 flex items-center justify-center text-4xl">
@@ -101,6 +150,7 @@ const WishlistPage = () => {
         </div>
       </section>
 
+      {/* Search Section */}
       <section className="py-12 border-b border-vintage-brown/10">
         <div className="max-w-2xl mx-auto px-4">
           <div className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6">
@@ -120,21 +170,26 @@ const WishlistPage = () => {
                 <div className="absolute w-full bg-white border border-vintage-brown/20 rounded-xl mt-1 shadow-lg max-h-64 overflow-y-auto z-10">
                   {suggestions.length === 0 ? (
                     <div className="px-4 py-3 text-vintage-brown/40">
-                      No games found
+                      {allGames.length === 0
+                        ? "Loading games..."
+                        : "No matching games found"}
                     </div>
                   ) : (
                     suggestions.map((game) => (
                       <button
-                        key={game.name}
+                        key={game.id}
                         type="button"
                         onClick={() => addToWishlist(game)}
                         className="w-full text-left px-4 py-3 hover:bg-vintage-cream transition flex items-center gap-3"
                       >
-                        <span className="text-2xl">{game.emoji}</span>
+                        <span className="text-2xl">{game.emoji || "🎲"}</span>
                         <div>
-                          <div className="font-medium">{game.name}</div>
+                          <div className="font-medium">
+                            {game.gameName || game.name}
+                          </div>
                           <div className="text-sm text-vintage-brown/60">
-                            {game.players} · {game.age}
+                            {game.maxMinPlayers || game.players || "Unknown"} ·
+                            {game.minAge ? ` Age ${game.minAge}+` : " Unknown"}
                           </div>
                         </div>
                       </button>
@@ -147,49 +202,16 @@ const WishlistPage = () => {
         </div>
       </section>
 
-      {selectMode ? (
-        <div className="fixed bottom-0 left-0 w-full bg-vintage-brown text-white py-4 shadow-lg z-40">
-          <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <span className="font-medium">{selectedIds.size} selected</span>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectMode(false);
-                  setSelectedIds(new Set());
-                }}
-                className="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-full transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={removeSelected}
-                className="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-full transition"
-              >
-                Delete Selected
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
+      {/* Wishlist Games Section */}
       <section className="py-20 pb-32">
         <div className="max-w-6xl mx-auto px-4">
-          {wishlist.length > 0 ? (
+          {wishlist.length > 0 && (
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-playfair font-bold">
                 {wishlist.length === 1 ? "1 Game" : `${wishlist.length} Games`}
               </h2>
-              <button
-                type="button"
-                onClick={() => setSelectMode(!selectMode)}
-                className="text-vintage-accent font-medium hover:text-amber-700 transition"
-              >
-                {selectMode ? "Cancel Selection" : "Select Multiple"}
-              </button>
             </div>
-          ) : null}
+          )}
 
           {wishlist.length === 0 ? (
             <div className="text-center py-16">
@@ -216,49 +238,25 @@ const WishlistPage = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {wishlist.map((game) => (
-                <button
-                  type="button"
+                <div
                   key={game.id}
-                  onClick={() =>
-                    selectMode ? toggleSelection(game.id) : undefined
-                  }
-                  className={`bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 transition relative text-left ${
-                    selectMode
-                      ? "cursor-pointer"
-                      : "hover:-translate-y-2 hover:shadow-lg cursor-default"
-                  } ${selectedIds.has(game.id) ? "ring-2 ring-vintage-accent" : ""}`}
+                  className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-default text-left"
                 >
-                  {selectMode ? (
-                    <div className="absolute top-3 right-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(game.id)}
-                        readOnly
-                        className="w-5 h-5 accent-vintage-accent pointer-events-none"
-                      />
-                    </div>
-                  ) : null}
                   <div className="h-40 bg-vintage-accent/20 rounded-xl mb-4 flex items-center justify-center text-4xl">
                     {game.emoji}
                   </div>
-                  <h3 className="text-xl font-medium mb-1">{game.name}</h3>
+                  <h3 className="text-xl font-medium mb-1">{game.gameName}</h3>
                   <p className="text-sm opacity-80">
-                    {game.players} · {game.age}
+                    {game.maxMinPlayers} Players · {game.yearPublished}
                   </p>
-                  {!selectMode ? (
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFromWishlist(game.id);
-                      }}
-                      className="mt-4 inline-block text-red-500 text-sm font-medium hover:text-red-700"
-                    >
-                      Remove
-                    </span>
-                  ) : null}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => removeFromWishlist(game.id)}
+                    className="mt-4 text-red-500 text-sm font-medium hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
               ))}
             </div>
           )}

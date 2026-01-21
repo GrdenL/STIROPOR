@@ -196,7 +196,7 @@ public class User {
         this.town = town;
     }
 
-
+    public Integer getId() { return userId; }
 
 
     public List<Game> getWishlist() {

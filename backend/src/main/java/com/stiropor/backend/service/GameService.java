@@ -6,6 +6,7 @@ import com.stiropor.backend.repository.GameRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GameService {
@@ -27,8 +28,8 @@ public class GameService {
     public Game save(Game game) {
         return gameRepository.save(game);
     }
-    public java.util.Optional<Game> findById(Integer gameId) {
-        return gameRepository.findById(gameId);
+    public Optional<Game> findById(Integer gameId) {
+        return gameRepository.findByGameId(gameId);
     }
     public List<Game> findAllByGenre(Genre genre) {
         return gameRepository.findAllByGenresContaining(genre);

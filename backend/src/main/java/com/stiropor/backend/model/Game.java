@@ -66,7 +66,7 @@ public class Game{
 	}
 
 
-	public Integer getGameId() {
+	public Integer getId() {
 		return gameId;
 	}
 
