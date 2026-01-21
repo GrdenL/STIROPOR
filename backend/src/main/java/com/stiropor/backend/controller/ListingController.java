@@ -72,10 +72,10 @@ public class ListingController {
         }
 
         Media media = null;
-        media = mediaService.save(new Media("random media", user));
-        /*if (body.mediaHref != null && !body.mediaHref.isBlank()) {
+        //media = mediaService.save(new Media("random media", user));
+        if (body.mediaHref != null && !body.mediaHref.isBlank()) {
             media = mediaService.save(new Media(body.mediaHref, user));
-        }*/
+        }
         Game game = resolveGame(body, media);
         if (game == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
