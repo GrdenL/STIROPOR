@@ -37,6 +37,7 @@ const MyTradesPage = () => {
   const [selectedTrade, setSelectedTrade] = useState(null);
   const [popup, setPopup] = useState(null);
   const [tradeType, setTradeType] = useState("received");
+  const [usersById, setUsersById] = useState(null);
 
   useEffect(() => {
     if (!authReady) {
@@ -49,6 +50,50 @@ const MyTradesPage = () => {
     }
     fetchTrades();
   }, [authReady, tradeType, user]);
+
+  const resolveStoredToken = () => {
+    try {
+      return sessionStorage.getItem("jwt") || localStorage.getItem("jwt");
+    } catch (err) {
+      return null;
+    }
+  };
+
+  const loadUsersById = async () => {
+    if (usersById) {
+      return usersById;
+    }
+    const apiBase = import.meta.env.VITE_API_URL || "";
+    const normalizedBase = apiBase.endsWith("/")
+        ? apiBase.slice(0, -1)
+        : apiBase;
+    const token = resolveStoredToken();
+
+    try {
+      const res = await fetch(
+          normalizedBase ? `${normalizedBase}/users` : "/users",
+          {
+            credentials: "include",
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          }
+      );
+      if (!res.ok) {
+        throw new Error("Failed to load users");
+      }
+      const data = await res.json();
+      const mappedUsers = new Map();
+      data.forEach((profile) => {
+        if (profile?.userId !== undefined && profile?.userId !== null) {
+          mappedUsers.set(Number(profile.userId), profile);
+        }
+      });
+      setUsersById(mappedUsers);
+      return mappedUsers;
+    } catch (err) {
+      console.error("Failed to load users:", err);
+      return null;
+    }
+  };
 
   const fetchTrades = async () => {
     setLoading(true);
@@ -66,9 +111,27 @@ const MyTradesPage = () => {
         throw new Error("No data returned from API");
       }
 
+      const userDirectory = await loadUsersById();
+      const currentUserId =
+          user?.userId !== undefined && user?.userId !== null
+              ? Number(user.userId)
+              : null;
+
       const transformedData = await Promise.all(
           offersData.map(async (offer) => {
             try {
+              const fromUserId =
+                  offer?.fromUserId !== undefined && offer?.fromUserId !== null
+                      ? Number(offer.fromUserId)
+                      : null;
+              const toUserId =
+                  offer?.toUserId !== undefined && offer?.toUserId !== null
+                      ? Number(offer.toUserId)
+                      : null;
+              const isReceived =
+                  currentUserId !== null
+                      ? toUserId === currentUserId
+                      : tradeType === "received";
               const targetListing = offer.targetListing
                   ? offer.targetListing
                   : await getListingById(offer.targetListingId);
@@ -79,12 +142,22 @@ const MyTradesPage = () => {
                       ? await getListingById(offer.offeredListingIds[0])
                       : null;
 
-              const isReceived = tradeType === "received";
               const fromName = offer.fromUsername || `User ${offer.fromUserId}`;
               const toName = offer.toUsername || `User ${offer.toUserId}`;
+              const partnerUserId = isReceived ? fromUserId : toUserId;
               const yourListing = isReceived ? targetListing : offeredListing;
               const theirListing = isReceived ? offeredListing : targetListing;
-              const partnerUser = theirListing?.owner || theirListing?.user;
+              const listingPartner = [theirListing?.owner, theirListing?.user].find(
+                  (candidate) =>
+                      candidate &&
+                      (partnerUserId === null ||
+                          Number(candidate.userId) === partnerUserId)
+              );
+              const partnerProfile =
+                  partnerUserId !== null
+                      ? userDirectory?.get(partnerUserId)
+                      : null;
+              const partnerUser = partnerProfile || listingPartner;
               const partnerName =
                   partnerUser?.username || (isReceived ? fromName : toName);
               const statusValue =
