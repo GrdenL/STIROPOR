@@ -103,7 +103,7 @@ const MyGamesPage = () => {
     }
 
     return filtered;
-  }, [condition, listings, searchTerm, sortBy]);
+  }, [condition, listings, searchTerm, showInactive, sortBy]);
 
   return (
     <div className="bg-vintage-cream text-vintage-brown font-roboto">
