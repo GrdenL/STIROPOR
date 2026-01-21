@@ -8,15 +8,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Town {
 	@Id
-    	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "townId", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "town_id", nullable = false)
     	private Integer townId;
 
-	@Column(name = "townName", nullable = false)
+	@Column(name = "town_name", nullable = false)
 	private String townName;
 
 	@ManyToOne
-	@JoinColumn(name = "countryId", nullable = false)
+	@JoinColumn(name = "country_id", nullable = false)
 	private Country country;
 
 	public Town() {

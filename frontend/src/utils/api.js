@@ -1,9 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080", //OBAVEZNO VRATITI PRIJE PUSHA NA MAIN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! LUAK CITAJ
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
+
+export const googleAuthUrl = import.meta.env.VITE_API_URL + "oauth2/authorization/google";
 
 const resolveJwt = () => {
   try {
@@ -288,13 +290,13 @@ export const getOfferById = async (offerId) => {
 
 
 export const updateProfile = async (userData) => {
-    try {
-        const res = await api.put("/me", userData, { withCredentials: true });
-        return res.data;
-    } catch (err) {
-        console.error("Update profile failed:", err);
-        throw err;
-    }
+  try {
+    const res = await api.put("/me", userData, { withCredentials: true });
+    return res.data;
+  } catch (err) {
+    console.error("Update profile failed:", err);
+    throw err;
+  }
 };
 
 
@@ -325,6 +327,6 @@ export const register = async (email, username, password, location) => {
   }
 }
 
-export const googleAuthUrl = "https://stiropor-api.azurewebsites.net/oauth2/authorization/google";
+
 
 export default api;

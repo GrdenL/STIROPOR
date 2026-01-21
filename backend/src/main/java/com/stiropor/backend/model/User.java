@@ -47,7 +47,7 @@ public class User {
     private Date createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "town_id", nullable = false)
+    @JoinColumn(name = "townid", nullable = false)
     private Town town;
 
     @ManyToMany
