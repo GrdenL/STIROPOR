@@ -82,9 +82,11 @@ const MyTradesPage = () => {
               const isReceived = tradeType === "received";
               const fromName = offer.fromUsername || `User ${offer.fromUserId}`;
               const toName = offer.toUsername || `User ${offer.toUserId}`;
-              const partnerName = isReceived ? fromName : toName;
               const yourListing = isReceived ? targetListing : offeredListing;
               const theirListing = isReceived ? offeredListing : targetListing;
+              const partnerUser = theirListing?.owner || theirListing?.user;
+              const partnerName =
+                  partnerUser?.username || (isReceived ? fromName : toName);
               const statusValue =
                   offer.status !== undefined ? offer.status : offer.offerStatus;
               const normalizedStatus = Number.isInteger(statusValue)
@@ -92,16 +94,20 @@ const MyTradesPage = () => {
                   : 0;
               const partnerEmailName = (partnerName || "")
                   .toLowerCase()
-                  .replace(" ", ".");
-              const partnerAvatar = isReceived
-                  ? (targetListing?.user?.avatarUrl)
-                  : (theirListing?.user?.avatarUrl);
+                  .replace(/\s+/g, ".");
+              const partnerAvatar = partnerUser?.avatarUrl;
+              const partnerTown = partnerUser?.town?.townName;
+              const partnerCountry = partnerUser?.town?.country?.countryName;
+              const partnerLocation =
+                  partnerUser?.location ||
+                  [partnerTown, partnerCountry].filter(Boolean).join(", ") ||
+                  "Unknown";
 
               return {
                 id: offer.id || offer.offerId,
                 partnerAvatar: partnerAvatar,
+                partnerInitials: getInitials(partnerName),
                 from: isReceived ? fromName : "You",
-                fromInitials: getInitials(isReceived ? fromName : "You"),
                 to: isReceived ? "You" : toName,
                 yourGame:
                     yourListing?.game?.gameName ||
@@ -118,14 +124,15 @@ const MyTradesPage = () => {
                 status: normalizedStatus,
                 date: formatDate(offer.createdAt),
                 partnerEmail:
-                    partnerEmailName
+                    partnerUser?.email ||
+                    (partnerEmailName
                         ? `${partnerEmailName}@example.com`
-                        : "unknown@example.com",
-                partnerBio: theirListing?.user?.description,
-                location: theirListing?.user?.location || "Unknown",
-                latitude: theirListing?.user?.latitude || null,
-                longitude: theirListing?.user?.longitude || null,
-                distance: calculateDistance(theirListing?.user?.location),
+                        : "unknown@example.com"),
+                partnerBio: partnerUser?.description,
+                location: partnerLocation,
+                latitude: partnerUser?.latitude || null,
+                longitude: partnerUser?.longitude || null,
+                distance: calculateDistance(partnerLocation),
                 targetListingId: offer.targetListingId,
                 offeredListingIds: offer.offeredListingIds,
                 fromUserId: offer.fromUserId,
@@ -486,20 +493,20 @@ const MyTradesPage = () => {
                         >
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold text-sm">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold text-sm">
                                 {trade.partnerAvatar ? (
                                     <img
                                         src={trade.partnerAvatar}
                                         alt={trade.partnerName}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover rounded-full"
                                         onError={(e) => {
                                           e.target.onerror = null;
                                           e.target.src = ""; // Fallback to initials if image fails
-                                          e.target.parentElement.innerText = trade.fromInitials;
+                                          e.target.parentElement.innerText = trade.partnerInitials;
                                         }}
                                     />
                                 ) : (
-                                    trade.fromInitials
+                                    trade.partnerInitials
                                 )}
                               </div>
                               <div>
@@ -648,9 +655,10 @@ const MyTradesPage = () => {
                     <div className="text-right">
                       <p className="text-sm text-vintage-brown/60">Trade Partner</p>
                       <p className="font-medium">
-                        {selectedTrade.isReceived
-                            ? selectedTrade.from
-                            : selectedTrade.to}
+                        {selectedTrade.partnerName ||
+                            (selectedTrade.isReceived
+                                ? selectedTrade.from
+                                : selectedTrade.to)}
                       </p>
                     </div>
                   </div>
@@ -744,14 +752,29 @@ const MyTradesPage = () => {
 
                   <div className="bg-white border border-vintage-brown/10 rounded-xl p-4 mb-6">
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold">
-                        {selectedTrade.isReceived
-                            ? selectedTrade.fromInitials
-                            : "You"}
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold">
+                        {selectedTrade.partnerAvatar ? (
+                            <img
+                                src={selectedTrade.partnerAvatar}
+                                alt={selectedTrade.partnerName}
+                                className="w-full h-full object-cover rounded-full"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "";
+                                  e.target.parentElement.innerText =
+                                      selectedTrade.partnerInitials;
+                                }}
+                            />
+                        ) : (
+                            selectedTrade.partnerInitials
+                        )}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">
-                          {selectedTrade.isReceived ? selectedTrade.from : "You"}
+                          {selectedTrade.partnerName ||
+                              (selectedTrade.isReceived
+                                  ? selectedTrade.from
+                                  : selectedTrade.to)}
                         </p>
                         <a
                             href={`mailto:${selectedTrade.partnerEmail}`}
