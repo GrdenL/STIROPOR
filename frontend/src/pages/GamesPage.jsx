@@ -66,8 +66,8 @@ const GamesPage = () => {
   // Extract unique genres
   const allGenres = Array.from(
     new Set(
-      games.flatMap((g) => g.genres?.map((genre) => genre.genreName) || [])
-    )
+      games.flatMap((g) => g.genres?.map((genre) => genre.genreName) || []),
+    ),
   ).sort();
 
   // Filter games
@@ -224,7 +224,7 @@ const GamesPage = () => {
 
                   <div className="flex justify-end mt-4">
                     <Link
-                      to={`/games/${game.gameId}`}
+                      to={`/games/${game.id}`}
                       className="text-sm font-medium text-vintage-accent hover:underline"
                     >
                       View details →

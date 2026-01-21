@@ -103,7 +103,7 @@ const ProfilePage = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent text-3xl">
                 ✏️
               </div>
-              <h3 className="text-xl font-medium mb-1">Add / Edit Game</h3>
+              <h3 className="text-xl font-medium mb-1">Add Listing</h3>
               <p className="text-base opacity-80">Manage your listings</p>
             </Link>
 

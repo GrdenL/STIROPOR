@@ -130,7 +130,6 @@ export const logoutUser = async () => {
 }
 
 export const getListingsByGameId = async (gameId) => {
-  console.log(gameId)
   try {
     const res = await api.get(`/listings/game/${gameId}`);
     return res.data;
@@ -183,7 +182,6 @@ export const deleteListingById = async (id) => {
 
 // Trade/Offer API functions
 export const createOffer = async (offerData) => {
-  console.log(offerData)
   try {
     const res = await api.post("/offers", offerData, {
       withCredentials: true,

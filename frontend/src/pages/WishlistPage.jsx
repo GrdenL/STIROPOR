@@ -20,11 +20,10 @@ const WishlistPage = () => {
       // Fetch all games
       const games = await getAllGames();
       setAllGames(games);
-      console.log("All games:", games);
 
       // Fetch current user's wishlist
       const userWishlist = await getMyWishlist();
-      console.log("Wishlist:", userWishlist);
+
       setWishlist(userWishlist);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -74,8 +73,6 @@ const WishlistPage = () => {
   // Add game to wishlist
   const addToWishlist = async (game) => {
     try {
-      console.log("Adding game to wishlist:", game);
-
       // Add to wishlist via API
       await addWishlist(game.id);
 
