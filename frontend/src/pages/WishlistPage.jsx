@@ -5,6 +5,7 @@ import {
   removeWishlist,
   getMyWishlist,
 } from "../utils/api";
+import logo from "../assets/logo.png";
 
 const WishlistPage = () => {
   const [wishlist, setWishlist] = useState([]);
@@ -31,6 +32,15 @@ const WishlistPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const resolveGameImage = (game) => {
+    const name = game?.gameName?.toLowerCase().trim();
+    if (!name) {
+      return logo;
+    }
+    const slug = name.replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    return slug ? `/images/games/${slug}.jpg` : logo;
   };
 
   // Fetch data on component mount
@@ -239,9 +249,12 @@ const WishlistPage = () => {
                   key={game.id}
                   className="bg-white rounded-2xl shadow-md border border-vintage-brown/10 p-6 hover:-translate-y-2 hover:shadow-lg transition cursor-default text-left"
                 >
-                  <div className="h-40 bg-vintage-accent/20 rounded-xl mb-4 flex items-center justify-center text-4xl">
-                    {game.emoji}
-                  </div>
+                  <img
+                      src={resolveGameImage(game)}
+                      alt={game.gameName}
+                      className="w-10 h-10 rounded-md object-cover bg-vintage-accent/10"
+                      onError={(e) => { e.target.src = logo; }} 
+                  />
                   <h3 className="text-xl font-medium mb-1">{game.gameName}</h3>
                   <p className="text-sm opacity-80">
                     {game.maxMinPlayers} Players · {game.yearPublished}
