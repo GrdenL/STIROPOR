@@ -93,9 +93,13 @@ const MyTradesPage = () => {
               const partnerEmailName = (partnerName || "")
                   .toLowerCase()
                   .replace(" ", ".");
+              const partnerAvatar = isReceived
+                  ? (targetListing?.user?.avatarUrl)
+                  : (theirListing?.user?.avatarUrl);
 
               return {
                 id: offer.id || offer.offerId,
+                partnerAvatar: partnerAvatar,
                 from: isReceived ? fromName : "You",
                 fromInitials: getInitials(isReceived ? fromName : "You"),
                 to: isReceived ? "You" : toName,
@@ -117,7 +121,7 @@ const MyTradesPage = () => {
                     partnerEmailName
                         ? `${partnerEmailName}@example.com`
                         : "unknown@example.com",
-                partnerBio: "Board game enthusiast",
+                partnerBio: theirListing?.user?.description,
                 location: theirListing?.user?.location || "Unknown",
                 latitude: theirListing?.user?.latitude || null,
                 longitude: theirListing?.user?.longitude || null,
@@ -483,7 +487,20 @@ const MyTradesPage = () => {
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-vintage-accent/20 flex items-center justify-center text-vintage-accent font-bold text-sm">
-                                {isReceived ? trade.fromInitials : "You"}
+                                {trade.partnerAvatar ? (
+                                    <img
+                                        src={trade.partnerAvatar}
+                                        alt={trade.partnerName}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.target.onerror = null;
+                                          e.target.src = ""; // Fallback to initials if image fails
+                                          e.target.parentElement.innerText = trade.fromInitials;
+                                        }}
+                                    />
+                                ) : (
+                                    trade.fromInitials
+                                )}
                               </div>
                               <div>
                                 <p className="font-medium">
