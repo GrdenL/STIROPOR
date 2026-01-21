@@ -97,7 +97,7 @@ public class WishlistController {
             // Check if already exists in wishlist
             List<Game> userWishlist = wishListService.findByUser(user);
             boolean alreadyExists = userWishlist.stream()
-                    .anyMatch(g -> g.getId().equals(gameId));
+                    .anyMatch(g -> g.getGameId().equals(gameId));
 
             if (alreadyExists) {
                 return ResponseEntity.badRequest().body(null);
@@ -128,7 +128,7 @@ public class WishlistController {
 
             // Find the game to remove
             Optional<Game> gameToRemove = userWishlist.stream()
-                    .filter(g -> g.getId().equals(gameId))
+                    .filter(g -> g.getGameId().equals(gameId))
                     .findFirst();
 
             if (gameToRemove.isPresent()) {
@@ -141,7 +141,7 @@ public class WishlistController {
 
                 // Create the WishListId to identify which entry to delete
                 WishListId wishListId = new WishListId();
-                wishListId.setUserId(user.getId());
+                wishListId.setUserId(user.getUserId());
                 wishListId.setGameId(gameId);
 
                 // Create a WishList object with the ID to delete
@@ -169,7 +169,7 @@ public class WishlistController {
             List<Game> userWishlist = wishListService.findByUser(user);
 
             boolean isInWishlist = userWishlist.stream()
-                    .anyMatch(g -> g.getId().equals(gameId));
+                    .anyMatch(g -> g.getGameId().equals(gameId));
 
             return ResponseEntity.ok(isInWishlist);
         } catch (Exception e) {

@@ -85,7 +85,7 @@ public class ListingController {
         List<User> wishListUsers = wishListService.findByGame(game);
         if (!wishListUsers.isEmpty()) {
             for (User wishUser : wishListUsers){
-                if (wishUser.getId() != user.getId()){
+                if (wishUser.getUserId() != user.getUserId()){
                     notificationService.sendWishListEmail(
                             wishUser.getEmail(),
                             "The game you wishlisted is available!",
@@ -260,7 +260,7 @@ public class ListingController {
             response.isActive = listing.getIsActive();
             response.description = listing.getDescription();
             if (listing.getGame() != null) {
-                response.gameId = listing.getGame().getId();
+                response.gameId = listing.getGame().getGameId();
                 response.gameName = listing.getGame().getGameName();
             }
             if (listing.getMedia() != null) {
