@@ -59,7 +59,7 @@ const WishlistPage = () => {
   const gameMap = useMemo(() => {
     const map = new Map();
     allGames.forEach((game) => {
-      map.set(game.id, game);
+      map.set(game.id || game.gameId, game);
     });
     return map;
   }, [allGames]);
@@ -76,7 +76,7 @@ const WishlistPage = () => {
     return allGames.filter(
       (game) =>
         (game.gameName || game.name || "").toLowerCase().includes(query) &&
-        !wishlistGameIds.has(game.id),
+        !wishlistGameIds.has(game.id || game.gameId),
     );
   }, [searchTerm, allGames, wishlist]);
 
@@ -84,7 +84,7 @@ const WishlistPage = () => {
   const addToWishlist = async (game) => {
     try {
       // Add to wishlist via API
-      await addWishlist(game.id);
+      await addWishlist(game.id || game.gameId);
 
       // Refetch data to get the latest wishlist
       await fetchData();
