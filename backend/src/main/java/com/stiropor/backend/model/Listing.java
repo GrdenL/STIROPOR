@@ -10,13 +10,13 @@ import java.util.Date;
 public class Listing{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "listingId", nullable = false)
+	@Column(name = "listing_id", nullable = false)
 	private Integer listingId;
 
 	@Column(name = "condition", nullable = false)
 	private String condition;
 
-	@Column(name = "isActive", nullable = false)
+	@Column(name = "is_active", nullable = false)
 	private Boolean isActive;
 
 	@Column(name = "created_at", nullable = false)
@@ -26,15 +26,15 @@ public class Listing{
 	private String description;
 
 	@ManyToOne
-	@JoinColumn(name = "userId", nullable = false)
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
 	@ManyToOne
-	@JoinColumn(name = "gameId", nullable = false)
+	@JoinColumn(name = "game_id", nullable = false)
 	private Game game;
 
 	@ManyToOne(optional = true)
-	@JoinColumn(name = "mediaId")
+	@JoinColumn(name = "media_id")
 	private Media media;
 
 	public Listing() {

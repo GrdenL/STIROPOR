@@ -8,10 +8,10 @@ import jakarta.persistence.*;
 public class Country {
 	@Id
     	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "countryId", nullable = false)
+	@Column(name = "country_id", nullable = false)
     	private Integer countryId;
 
-	@Column(name = "countryName", nullable = false)
+	@Column(name = "country_name", nullable = false)
 	private String countryName;
 
 	public Country() {

@@ -197,7 +197,7 @@ const OfferTradePage = () => {
                   />
 
                   <img
-                    src={listing.mediaHref || listing.media?.href || logo}
+                    src={listing.media?.href || listing.mediaHref || logo}
                     onError={(e) => (e.target.src = logo)}
                     alt=""
                     className="h-16 w-16 object-cover rounded"

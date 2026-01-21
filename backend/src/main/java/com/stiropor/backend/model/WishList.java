@@ -25,7 +25,7 @@ public class WishList {
     public WishList(User user, Game game) {
         this.user = user;
         this.game = game;
-        this.id = new WishListId(user.getUserId(), game.getId());
+        this.id = new WishListId(user.getUserId(), game.getGameId());
     }
 
     public WishListId getId() {

@@ -10,7 +10,7 @@ import java.util.Date;
 public class Trade {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "tradeId", nullable = false)
+	@Column(name = "trade_id", nullable = false)
 	private Integer tradeId;
 
 	@Column(name = "agreed_at", nullable = false)
@@ -26,7 +26,7 @@ public class Trade {
 	private Integer ratingFromSeller;
 
 	@ManyToOne
-	@JoinColumn(name = "offerId", nullable = false)
+	@JoinColumn(name = "offer_id", nullable = false)
 	private Offer offer;
 
 	public Trade() {

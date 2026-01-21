@@ -14,26 +14,26 @@ public class Game{
 	@Column(name = "game_id", nullable = false)
 	private Integer gameId;
 
-	@Column(name = "gameName", nullable = false)
+	@Column(name = "game_name", nullable = false)
 	private String gameName;
 
 	@Column(name = "publisher", nullable = false)
 	private String publisher;
 
-	@Column(name = "maxMinPlayers", nullable = false)
+	@Column(name = "max_min_players", nullable = false)
 	private String maxMinPlayers;
 
-	@Column(name = "avgPlayTime", nullable = false)
+	@Column(name = "avg_play_time", nullable = false)
 	private Integer avgPlayTime;
 
 	@Column(name = "complexity", nullable = false)
 	private Integer complexity;
 
-	@Column(name = "yearPublished", nullable = false)
+	@Column(name = "year_published", nullable = false)
 	private Integer yearPublished;
 
 	@ManyToOne(optional = true)
-	@JoinColumn(name = "mediaId")
+	@JoinColumn(name = "media_id")
 	private Media media;
 
 	
@@ -66,7 +66,7 @@ public class Game{
 	}
 
 
-	public Integer getId() {
+	public Integer getGameId() {
 		return gameId;
 	}
 

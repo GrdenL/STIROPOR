@@ -11,14 +11,14 @@ public class Media {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "mediaId", nullable = false)
+	@Column(name = "media_id", nullable = false)
 	private Integer mediaId;
 
 	@Column(name = "href", nullable = false)
 	private String href;
 
 	@ManyToOne
-	@JoinColumn(name = "userId", nullable = false)
+	@JoinColumn(name = "user_id", nullable = false)
 	@JsonIgnore
 	private User user;
 

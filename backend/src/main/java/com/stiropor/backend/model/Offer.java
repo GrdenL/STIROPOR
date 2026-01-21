@@ -10,7 +10,7 @@ import java.util.Date;
 public class Offer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "offerId", nullable = false)
+	@Column(name = "offer_id", nullable = false)
 	private Integer offerId;
 
 	@Column(name = "offer_status", nullable = false)
@@ -23,15 +23,15 @@ public class Offer {
     	private Date createdAt;
 
 	@ManyToOne
-	@JoinColumn(name = "from_userId", nullable = false)
+	@JoinColumn(name = "from_user_id", nullable = false)
 	private User from_user;
 
 	@ManyToOne
-	@JoinColumn(name = "to_userId", nullable = false)
+	@JoinColumn(name = "to_user_id", nullable = false)
 	private User to_user;
 
 	@ManyToOne
-	@JoinColumn(name = "target_listingId", nullable = false)
+	@JoinColumn(name = "target_listing_id", nullable = false)
 	private Listing listing;
 
 	public Offer(){
