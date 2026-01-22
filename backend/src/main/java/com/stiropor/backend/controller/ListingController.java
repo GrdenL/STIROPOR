@@ -102,7 +102,7 @@ public class ListingController {
                     String timestamp = LocalDateTime.now().format(formatter);
                     notificationService.sendWishListEmail(
                             wishUser.getEmail(),
-                            "[" + formatter + "] The game you wishlisted is available!",
+                            "[" + timestamp + "] The game you wishlisted is available!",
                             "The user " + user.getUsername() + " has listed your wishlisted game: " +
                                     game.getGameName() + "!\n\n" + frontendURL + "/games/" + game.getGameId()
                     );
