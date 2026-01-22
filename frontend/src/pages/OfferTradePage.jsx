@@ -176,7 +176,7 @@ const OfferTradePage = () => {
             <div className="text-vintage-brown/70">
               <p className="mb-2">You have no active listings.</p>
               <Link
-                to="/add-game"
+                to="/add-edit"
                 className="text-vintage-accent hover:underline"
               >
                 Add a game to your collection →

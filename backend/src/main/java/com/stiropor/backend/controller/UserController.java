@@ -172,27 +172,17 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestParam String email, @RequestParam String username, @RequestParam String password,  @RequestParam String location) {
+    public ResponseEntity<?> registerUser(@RequestParam String email, @RequestParam String username, @RequestParam String password) {
         try {
             if (userService.findByEmail(email) != null) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("User with this email already exists");
             }
 
-            NominatimService.LocationResponse result = nominatimService.geocode(location);
-
-            double lat = 0.0;
-            double lon = 0.0;
-
-            if(result != null) {
-                lat = Double.parseDouble(result.lat);
-                lon = Double.parseDouble(result.lon);
-            }
-            //mozemo dodati da ne radi ako je neispravna lokacija kasnije
 
             Town town = getOrCreateUnknownTown();
 
-            User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, lat, lon, town));
+            User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, null, null, town));
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
 
         } catch (Exception e) {

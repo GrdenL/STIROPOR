@@ -12,7 +12,6 @@ const RegisterPage = () => {
     firstName: "",
     lastName: "",
     email: "",
-    location: "",
     password: "",
     confirmPassword: "",
     acceptTerms: false,
@@ -62,7 +61,6 @@ const RegisterPage = () => {
           email: formData.email,
           username: `${formData.firstName} ${formData.lastName}`.trim(),
           password: formData.password,
-          location: formData.location,
         };
 
         const res = await register(payload.email, payload.username, payload.password, payload.location);
@@ -163,28 +161,6 @@ const RegisterPage = () => {
                   className="w-full px-4 py-3 border border-[#3B2F2F]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition font-roboto"
                   placeholder="you@email.com"
                 />
-              </div>
-
-              {/* Address */}
-              <div>
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-[#3B2F2F] mb-2 font-roboto"
-                >
-                  Address *
-                </label>
-                <input
-                  id="location"
-                  type="text"
-                  required
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-[#3B2F2F]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition font-roboto"
-                  placeholder="Number, Street, City, Country"
-                />
-                <p className="mt-1 text-xs text-[#3B2F2F]/60 font-roboto">
-                  Address is required to facilitate local swaps.
-                </p>
               </div>
 
               {/* Password */}

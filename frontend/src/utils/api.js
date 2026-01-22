@@ -313,10 +313,10 @@ export const login = async (email, password) => {
   }
 }
 
-export const register = async (email, username, password, location) => {
+export const register = async (email, username, password) => {
   try {
     const res = await api.post("/register", null, {
-      params: { email, username, password, location }
+      params: { email, username, password }
     })
     return res;
   } catch (err) {

@@ -117,7 +117,7 @@ class UserControllerTest {
         when(bCryptService.hashPassword("password")).thenReturn("hashedPassword");
         when(userService.save(any(User.class))).thenReturn(testUser);
 
-        ResponseEntity<?> responseEntity = userController.registerUser("test@example.com", "testUser", "password", "Unknown");
+        ResponseEntity<?> responseEntity = userController.registerUser("test@example.com", "testUser", "password");
 
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertEquals(testUser, responseEntity.getBody());
@@ -127,7 +127,7 @@ class UserControllerTest {
     void testRegisterUser_EmailExists() {
         when(userService.findByEmail("test@example.com")).thenReturn(testUser);
 
-        ResponseEntity<?> responseEntity = userController.registerUser("test@example.com", "testUser", "password", "Unknown");
+        ResponseEntity<?> responseEntity = userController.registerUser("test@example.com", "testUser", "password");
 
         assertEquals(HttpStatus.CONFLICT, responseEntity.getStatusCode());
     }
