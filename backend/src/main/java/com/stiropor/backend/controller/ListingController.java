@@ -27,6 +27,7 @@ public class ListingController {
     private final NotificationService notificationService;
     private final WishListService wishListService;
     private final OfferService offerService;
+    private final OfferItemService offerItemService;
 
     public ListingController(ListingService listingService,
                              GameService gameService,
@@ -34,7 +35,7 @@ public class ListingController {
                              UserService userService,
                              JwtUtil jwtUtil,
                              NotificationService notificationService,
-                             WishListService wishListService, OfferService offerService) {
+                             WishListService wishListService, OfferService offerService, OfferItemService offerItemService) {
         this.listingService = listingService;
         this.gameService = gameService;
         this.mediaService = mediaService;
@@ -43,6 +44,7 @@ public class ListingController {
         this.notificationService = notificationService;
         this.wishListService = wishListService;
         this.offerService = offerService;
+        this.offerItemService = offerItemService;
     }
 
     @GetMapping("/me")
@@ -119,14 +121,15 @@ public class ListingController {
         Listing listing = listingService.findByListingId(id);
 
         List<Offer> offers = offerService.findByListingId(id);
-        if (offers == null || offers.isEmpty()) {
+        List<OfferItem> offerItems = offerItemService.findByListingId(id);
+        if (offers == null || offers.isEmpty() || offerItems == null || offerItems.isEmpty()) {
             listingService.deleteByListingId(id);
             listing = new Listing();
         }
         else{
+           User sender = listing.getUser();
            for (Offer offer : offers) {
-               User sender = listing.getUser();
-                if(offer.getFrom_user().getUserId() == sender.getUserId() ){
+                if(offer.getFrom_user().getUserId().equals(sender.getUserId())){
                     offer.setOffer_status(3);
                     notificationService.createAndSendNotification(
                             offer.getTo_user(),
@@ -138,7 +141,6 @@ public class ListingController {
                     );
                 }else{
                     offer.setOffer_status(2);
-                    offerService.save(offer);
                     notificationService.createAndSendNotification(
                             offer.getFrom_user(),
                             sender.getEmail(),
@@ -150,8 +152,33 @@ public class ListingController {
                 }
                offerService.save(offer);
            }
-           listing.setIsActive(false);
-           listingService.save(listing);
+           for(OfferItem offerItem : offerItems){
+               Offer offer = offerItem.getOffer();
+               if(offer.getFrom_user().getUserId().equals(sender.getUserId())){
+                   offer.setOffer_status(3);
+                   notificationService.createAndSendNotification(
+                           offer.getTo_user(),
+                           sender.getEmail(),
+                           "OFFER_CANCELLED",
+                           offer.getOfferId(),
+                           "An offer for you has been cancelled!",
+                           "User " + sender.getUsername() + " has cancelled their offer!"
+                   );
+               }else{
+                   offer.setOffer_status(2);
+                   notificationService.createAndSendNotification(
+                           offer.getFrom_user(),
+                           sender.getEmail(),
+                           "OFFER_DECLINED",
+                           offer.getOfferId(),
+                           "An offer for you has been declined!",
+                           "User " + sender.getUsername() + " has declined your offer!"
+                   );
+               }
+               offerService.save(offer);
+               }
+          listing.setIsActive(false);
+          listingService.save(listing);
         }
         return ResponseEntity.ok(listing);
     }

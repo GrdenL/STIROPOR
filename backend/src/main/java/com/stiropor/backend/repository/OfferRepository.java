@@ -1,5 +1,6 @@
 package com.stiropor.backend.repository;
 
+import com.stiropor.backend.model.Listing;
 import com.stiropor.backend.model.Offer;
 import com.stiropor.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,7 @@ public interface OfferRepository extends JpaRepository<Offer, Integer> {
 
     @Query("select o from Offer o where o.to_user.userId = :userId")
     List<Offer> findByToUserId(@Param("userId") Integer userId);
+
+    @Query("select o.listing from Offer o where o.offerId = :offerId")
+    Listing findListingByOfferId(@Param("offerId") Integer offerId);
 }

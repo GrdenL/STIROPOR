@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,9 @@ public class OfferService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Transactional
     public OfferResponse createOffer(
@@ -290,6 +294,7 @@ public class OfferService {
      */
     @Transactional
     public void cancelOffer(Integer offerId, Integer currentUserId) {
+        this.cancelOffer(offerId, currentUserId);
         updateOfferStatus(offerId, 3, currentUserId); // 3 = CANCELLED
     }
 
@@ -298,6 +303,7 @@ public class OfferService {
      */
     @Transactional
     public OfferResponse acceptOffer(Integer offerId, Integer currentUserId) {
+        this.cancelOffer(offerId, currentUserId);
         return updateOfferStatus(offerId, 1, currentUserId); // 1 = ACCEPTED
     }
 
@@ -306,7 +312,70 @@ public class OfferService {
      */
     @Transactional
     public OfferResponse declineOffer(Integer offerId, Integer currentUserId) {
+        this.cancelOffer(offerId, currentUserId);
         return updateOfferStatus(offerId, 2, currentUserId); // 2 = DECLINED
+    }
+
+    @Transactional
+    protected void cancelAndDeclineOtherOffers(Integer offerId, Integer currentUserId) {
+        Listing listing = offerRepository.findListingByOfferId(offerId);
+        List<Offer> offers = offerRepository.findByListingId(listing.getListingId());
+        List<OfferItem> offerItems = offerItemRepository.findByListing_ListingId(listing.getListingId());
+        for (Offer offer : offers) {
+            if (!offer.getOfferId().equals(offerId)){
+                User sender = userRepository.findByUserId(currentUserId);
+                if(offer.getFrom_user().getUserId().equals(currentUserId)){
+                    offer.setOffer_status(3);
+                    notificationService.createAndSendNotification(
+                            offer.getTo_user(),
+                            sender.getEmail(),
+                            "OFFER_CANCELLED",
+                            offer.getOfferId(),
+                            "An offer for you has been cancelled!",
+                            "User " + sender.getUsername() + " has cancelled their offer!"
+                    );
+                }else{
+                    offer.setOffer_status(2);
+                    notificationService.createAndSendNotification(
+                            offer.getFrom_user(),
+                            sender.getEmail(),
+                            "OFFER_DECLINED",
+                            offer.getOfferId(),
+                            "An offer for you has been declined!",
+                            "User " + sender.getUsername() + " has declined your offer!"
+                    );
+                }
+                this.save(offer);
+            }
+        }
+        for(OfferItem offerItem : offerItems){
+            if(!offerItem.getId().getOfferId().equals(offerId)){
+                User sender = userRepository.findByUserId(currentUserId);
+                Offer offer = offerItem.getOffer();
+                if(offer.getFrom_user().getUserId().equals(currentUserId)){
+                    offer.setOffer_status(3);
+                    notificationService.createAndSendNotification(
+                            offer.getTo_user(),
+                            sender.getEmail(),
+                            "OFFER_CANCELLED",
+                            offer.getOfferId(),
+                            "An offer for you has been cancelled!",
+                            "User " + sender.getUsername() + " has cancelled their offer!"
+                    );
+                }else{
+                    offer.setOffer_status(2);
+                    notificationService.createAndSendNotification(
+                            offer.getFrom_user(),
+                            sender.getEmail(),
+                            "OFFER_DECLINED",
+                            offer.getOfferId(),
+                            "An offer for you has been declined!",
+                            "User " + sender.getUsername() + " has declined your offer!"
+                    );
+                }
+                this.save(offer);
+            }
+        }
     }
 
     private OfferResponse mapToResponse(Offer offer, List<Integer> offeredListingIds) {

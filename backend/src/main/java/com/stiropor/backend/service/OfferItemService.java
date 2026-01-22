@@ -23,4 +23,7 @@ public class OfferItemService {
     public void deleteByOffer(OfferItem offer) {
         offerItemRepository.delete(offer);
     }
+    public List<OfferItem> findByListingId (Integer listingId) {
+        return  offerItemRepository.findByListing_ListingId(listingId);
+    }
 }
