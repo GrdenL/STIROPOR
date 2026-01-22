@@ -7,6 +7,7 @@ import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,9 @@ public class ListingController {
     private final WishListService wishListService;
     private final OfferService offerService;
     private final OfferItemService offerItemService;
+
+    @Value("${server.frontend}")
+    private String frontendURL;
 
     public ListingController(ListingService listingService,
                              GameService gameService,
@@ -90,12 +94,12 @@ public class ListingController {
         List<User> wishListUsers = wishListService.findByGame(game);
         if (!wishListUsers.isEmpty()) {
             for (User wishUser : wishListUsers){
-                if (wishUser.getUserId() != user.getUserId()){
+                if (wishUser.getUserId().equals(user.getUserId())){
                     notificationService.sendWishListEmail(
                             wishUser.getEmail(),
                             "The game you wishlisted is available!",
                             "The user " + user.getUsername() + " has listed your wishlisted game: " +
-                                    game.getGameName() + "!"
+                                    game.getGameName() + "!\n\n" + frontendURL + "/games/" + game.getGameId()
                     );
                 }
 

@@ -39,7 +39,6 @@ public class NotificationService {
         String formattedContent = "You received a message from: " + fromEmail + "\n" + "-------------------------------------------\n\n" + body;
         message.setText(formattedContent);
         message.setFrom(mailFrom);
-        message.setReplyTo(fromEmail);
 
         try {
             mailSender.send(message);

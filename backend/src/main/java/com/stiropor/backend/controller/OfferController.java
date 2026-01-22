@@ -10,6 +10,7 @@ import com.stiropor.backend.service.NotificationService;
 import com.stiropor.backend.service.OfferService;
 import com.stiropor.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/offers")
 public class OfferController {
+    @Value("${server.frontend}")
+    private String frontendURL;
 
     @Autowired
     private OfferService offerService;
@@ -86,6 +89,7 @@ public class OfferController {
                     "New offer for your game!",
                     "User " + sender.getUsername() + " is offering you: "+games+"\nfor your: "
                             + listingService.findByListingId(request.getRequestedListingId()).getGame().getGameName()
+                            + "\n\n" + frontendURL + "/my-trades"
             );
 
             return ResponseEntity.status(HttpStatus.CREATED).body(offer);
