@@ -323,4 +323,12 @@ public class OfferService {
         response.setCreatedAt(offer.getCreatedAt());
         return response;
     }
+
+    public List<Offer> findByListingId(Integer listingId){
+        return  offerRepository.findByListingId(listingId);
+    }
+
+    public Offer save(Offer offer) {
+        return offerRepository.save(offer);
+    }
 }

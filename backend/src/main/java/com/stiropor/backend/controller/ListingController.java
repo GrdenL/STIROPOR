@@ -1,13 +1,12 @@
 package com.stiropor.backend.controller;
 
-import com.stiropor.backend.model.Game;
-import com.stiropor.backend.model.Listing;
-import com.stiropor.backend.model.Media;
-import com.stiropor.backend.model.User;
+import com.stiropor.backend.dto.OfferResponse;
+import com.stiropor.backend.model.*;
 import com.stiropor.backend.service.*;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +26,7 @@ public class ListingController {
     private final JwtUtil jwtUtil;
     private final NotificationService notificationService;
     private final WishListService wishListService;
+    private final OfferService offerService;
 
     public ListingController(ListingService listingService,
                              GameService gameService,
@@ -34,7 +34,7 @@ public class ListingController {
                              UserService userService,
                              JwtUtil jwtUtil,
                              NotificationService notificationService,
-                             WishListService wishListService) {
+                             WishListService wishListService, OfferService offerService) {
         this.listingService = listingService;
         this.gameService = gameService;
         this.mediaService = mediaService;
@@ -42,6 +42,7 @@ public class ListingController {
         this.jwtUtil = jwtUtil;
         this.notificationService = notificationService;
         this.wishListService = wishListService;
+        this.offerService = offerService;
     }
 
     @GetMapping("/me")
@@ -106,14 +107,53 @@ public class ListingController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Listing> getListingById(@PathVariable Integer id) {
+
+
         Listing listing = listingService.findByListingId(id);
         return ResponseEntity.ok(listing);
     }
 
+    @Transactional
     @DeleteMapping("/{id}")
     public ResponseEntity<Listing> deleteListingById(@PathVariable Integer id) {
-        listingService.deleteByListingId(id);
-        return ResponseEntity.ok(new Listing());
+        Listing listing = listingService.findByListingId(id);
+
+        List<Offer> offers = offerService.findByListingId(id);
+        if (offers == null || offers.isEmpty()) {
+            listingService.deleteByListingId(id);
+            listing = new Listing();
+        }
+        else{
+           for (Offer offer : offers) {
+               User sender = listing.getUser();
+                if(offer.getFrom_user().getUserId() == sender.getUserId() ){
+                    offer.setOffer_status(3);
+                    notificationService.createAndSendNotification(
+                            offer.getTo_user(),
+                            sender.getEmail(),
+                            "OFFER_CANCELLED",
+                            offer.getOfferId(),
+                            "An offer for you has been cancelled!",
+                            "User " + sender.getUsername() + " has cancelled their offer!"
+                    );
+                }else{
+                    offer.setOffer_status(2);
+                    offerService.save(offer);
+                    notificationService.createAndSendNotification(
+                            offer.getFrom_user(),
+                            sender.getEmail(),
+                            "OFFER_DECLINED",
+                            offer.getOfferId(),
+                            "An offer for you has been declined!",
+                            "User " + sender.getUsername() + " has declined your offer!"
+                    );
+                }
+               offerService.save(offer);
+           }
+           listing.setIsActive(false);
+           listingService.save(listing);
+        }
+        return ResponseEntity.ok(listing);
     }
 
 

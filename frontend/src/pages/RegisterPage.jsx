@@ -63,7 +63,7 @@ const RegisterPage = () => {
           password: formData.password,
         };
 
-        const res = await register(payload.email, payload.username, payload.password, payload.location);
+        const res = await register(payload.email, payload.username, payload.password);
         if (!res?.data) {
           alert("Korisnik već postoji ili registracija nije uspjela.");
           return;
