@@ -292,7 +292,6 @@ public class OfferService {
      */
     @Transactional
     public void cancelOffer(Integer offerId, Integer currentUserId) {
-        this.cancelAndDeclineOtherOffers(offerId, currentUserId);
         updateOfferStatus(offerId, 3, currentUserId); // 3 = CANCELLED
     }
 
