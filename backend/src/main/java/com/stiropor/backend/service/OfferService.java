@@ -309,7 +309,6 @@ public class OfferService {
      */
     @Transactional
     public OfferResponse declineOffer(Integer offerId, Integer currentUserId) {
-        this.cancelAndDeclineOtherOffers(offerId, currentUserId);
         return updateOfferStatus(offerId, 2, currentUserId); // 2 = DECLINED
     }
 

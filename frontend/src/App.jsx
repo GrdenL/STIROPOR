@@ -13,6 +13,7 @@ import MyGamesPage from "./pages/MyGamesPage";
 import MyTradesPage from "./pages/MyTradesPage";
 import WishlistPage from "./pages/WishlistPage";
 import AddEditGamePage from "./pages/AddEditGamePage";
+import ProtectedRoutes from "./utils/protectedRoute";
 
 function App() {
   return (
@@ -26,13 +27,14 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/games" element={<GamesPage />} />
           <Route path="/games/:id" element={<GameDetailsPage />} />
-          <Route path="/offer/:listingId" element={<OfferTradePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/edit" element={<EditProfilePage />} />
-          <Route path="/my-games" element={<MyGamesPage />} />
-          <Route path="/my-trades" element={<MyTradesPage />}/>
-          <Route path="/add-edit" element={<AddEditGamePage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
+
+          <Route path="/offer/:listingId" element={<ProtectedRoutes><OfferTradePage/></ProtectedRoutes> } />
+          <Route path="/profile" element={<ProtectedRoutes><ProfilePage /></ProtectedRoutes>} />
+          <Route path="/profile/edit" element={<ProtectedRoutes><EditProfilePage /></ProtectedRoutes>} />
+          <Route path="/my-games" element={<ProtectedRoutes><MyGamesPage /></ProtectedRoutes>} />
+          <Route path="/my-trades" element={<ProtectedRoutes><MyTradesPage /></ProtectedRoutes>}/>
+          <Route path="/add-edit" element={<ProtectedRoutes><AddEditGamePage /></ProtectedRoutes>} />
+          <Route path="/wishlist" element={<ProtectedRoutes><WishlistPage /></ProtectedRoutes>} />
         </Routes>
       </main>
 

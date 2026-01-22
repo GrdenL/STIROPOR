@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import "../index.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { login, register, googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
   const { login: setAuthUser } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -78,12 +81,21 @@ const RegisterPage = () => {
           localStorage.setItem("jwt", loginRes.data.token);
         }
         setAuthUser(loginRes.data.user);
-        navigate("/", { replace: true });
+        navigate(from, { replace: true });
       } catch (err) {
         console.error(err);
         alert("Greška pri registraciji.");
       }
     }
+  };
+
+  const handleGoogleRegister = (e) => {
+    localStorage.setItem("postLoginRedirect", from);
+
+    sessionStorage.removeItem("jwt");
+    localStorage.removeItem("jwt");
+
+    window.location.href = googleAuthUrl;
   };
 
   return (
@@ -273,10 +285,7 @@ const RegisterPage = () => {
             <div className="space-y-3">
               <a
                 href={googleAuthUrl}
-                onClick={() => {
-                  sessionStorage.removeItem("jwt");
-                  localStorage.removeItem("jwt");
-                }}
+                onClick={handleGoogleRegister}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -306,6 +315,7 @@ const RegisterPage = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
+                state={{from : location.state?.from}}
                 className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
               >
                 Log in Here

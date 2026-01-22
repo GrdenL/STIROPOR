@@ -3,12 +3,16 @@ import { Link } from "react-router-dom";
 import "../index.css";
 import {googleAuthUrl, login} from "../utils/api";
 import logo from "../assets/logo.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login: setAuthUser } = useAuth();
+
+  const from = location.state?.from?.pathname || "/";
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -41,13 +45,21 @@ const LoginPage = () => {
       setAuthUser(res.data.user);
       // uspjeh
       console.log("Ulogiran:", res.data.user);
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
       alert("Login nije uspio.");
     }
   };
 
+  const handleGoogleRedirect = () => {
+    sessionStorage.removeItem("jwt");
+    localStorage.removeItem("jwt");
+
+    localStorage.setItem("postLoginRedirect", from);
+
+    window.location.href = googleAuthUrl;
+  };
   return (
     <div className="min-h-screen bg-[#F9F5F0] flex flex-col font-roboto">
       {/* Main Content */}
@@ -152,12 +164,9 @@ const LoginPage = () => {
 
             {/* OAuth Buttons */}
             <div className="space-y-3">
-              <a
-                href={googleAuthUrl}
-                onClick={() => {
-                  sessionStorage.removeItem("jwt");
-                  localStorage.removeItem("jwt");
-                }}
+              <button
+                type = "button"
+                onClick={handleGoogleRedirect}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -179,7 +188,7 @@ const LoginPage = () => {
                   />
                 </svg>
                 Continue with Google
-              </a>
+              </button>
             </div>
           </div>
 
@@ -188,6 +197,7 @@ const LoginPage = () => {
             Don't have an account?{" "}
             <Link
               to="/register"
+              state={{from: location.state?.from}}
               className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
             >
               Sign up Here

@@ -42,6 +42,16 @@ export const AuthProvider = ({ children }) => {
       if (!cancelled) {
         setUser(data ?? null);
         setAuthReady(true);
+
+        if (data) {
+          const savedPath = localStorage.getItem("postLoginRedirect");
+          if (savedPath) {
+            localStorage.removeItem("postLoginRedirect");
+            setTimeout(() => {
+              navigate(savedPath, { replace: true });
+            }, 100);
+          }
+        }
       }
     };
 
