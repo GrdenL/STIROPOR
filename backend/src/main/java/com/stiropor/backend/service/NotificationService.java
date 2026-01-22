@@ -35,7 +35,7 @@ public class NotificationService {
     public void sendEmailBetweenUsers(String fromEmail, String toEmail, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("["+fromEmail+"] "+subject);
+        message.setSubject(subject);
         String formattedContent = "You received a message from: " + fromEmail + "\n" + "-------------------------------------------\n\n" + body;
         message.setText(formattedContent);
         message.setFrom(mailFrom);

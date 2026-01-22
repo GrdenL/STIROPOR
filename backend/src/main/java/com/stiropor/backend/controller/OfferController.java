@@ -84,7 +84,7 @@ public class OfferController {
             notificationService.createAndSendNotification(
                     recipient,
                     sender.getEmail(),
-                    "OFFER_RECEVIED",
+                    "OFFER_RECEIVED",
                     offer.getOfferId(),
                     "New offer for your game!",
                     "User " + sender.getUsername() + " is offering you: "+games+"\nfor your: "

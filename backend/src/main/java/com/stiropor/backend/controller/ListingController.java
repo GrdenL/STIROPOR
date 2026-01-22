@@ -94,7 +94,7 @@ public class ListingController {
         List<User> wishListUsers = wishListService.findByGame(game);
         if (!wishListUsers.isEmpty()) {
             for (User wishUser : wishListUsers){
-                if (wishUser.getUserId().equals(user.getUserId())){
+                if (!wishUser.getUserId().equals(user.getUserId())){
                     notificationService.sendWishListEmail(
                             wishUser.getEmail(),
                             "The game you wishlisted is available!",
