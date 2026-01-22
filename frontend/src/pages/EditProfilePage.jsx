@@ -37,21 +37,32 @@ const EditProfilePage = () => {
     if (user?.description) setBio(user.description);
     if (user?.avatarUrl) setAvatarUrl(user.avatarUrl);
     if (!user?.avatarUrl) setAvatarUrl("");
-    const nextLocation =
-      user?.location ||
-      (user?.town?.townName
-        ? `${user.town.townName}${user?.town?.country?.countryName ? `, ${user.town.country.countryName}` : ""}`
-        : null);
-    console.log(user, nextLocation);
-    if (nextLocation) {
-      setLocation(nextLocation);
-      setLocationQuery(nextLocation);
-    }
-    if (avatarPreviewUrl) {
-      URL.revokeObjectURL(avatarPreviewUrl);
-      setAvatarPreviewUrl(null);
-    }
-    setAvatarFile(null);
+
+    // Define the async logic inside the effect
+    const initializeLocation = async () => {
+      let nextLocation;
+      const derivedLocation = await reverseGeocode(
+        user.latitude,
+        user.longitude,
+      );
+      if (derivedLocation) {
+        nextLocation = derivedLocation.split(",").splice(3).join(",");
+      }
+
+      if (nextLocation) {
+        setLocation(nextLocation);
+        setLocationQuery(nextLocation);
+      }
+    };
+
+    initializeLocation();
+
+    // Cleanup logic
+    return () => {
+      if (avatarPreviewUrl) {
+        URL.revokeObjectURL(avatarPreviewUrl);
+      }
+    };
   }, [user]);
 
   useEffect(() => {
@@ -100,6 +111,35 @@ const EditProfilePage = () => {
     } catch (err) {
       console.error("Location search failed:", err);
       setLocationResults([]);
+    }
+  };
+
+  const reverseGeocode = async (lat, lon) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?` +
+          new URLSearchParams({
+            lat: Number(lat),
+            lon: Number(lon),
+            format: "jsonv2",
+          }),
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Playtrade/1.0 (leon.grden@gmail.com)",
+          },
+        },
+      );
+
+      if (!res.ok) throw new Error("Reverse geocode failed");
+      const data = await res.json();
+
+      // data.display_name is the full address
+      // data.address contains parts like city, town, village, country
+      return data.display_name;
+    } catch (err) {
+      console.error("Reverse geocoding error:", err);
+      return null;
     }
   };
 
@@ -170,7 +210,6 @@ const EditProfilePage = () => {
         avatarUrl: nextAvatarUrl || null,
         location: location?.label ?? locationQuery,
       };
-      console.log(payload);
       const updatedUser = await updateProfile(payload);
       if (setUser) {
         setUser(updatedUser);
