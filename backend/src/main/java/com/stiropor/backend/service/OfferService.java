@@ -292,7 +292,7 @@ public class OfferService {
      */
     @Transactional
     public void cancelOffer(Integer offerId, Integer currentUserId) {
-        this.cancelOffer(offerId, currentUserId);
+        this.cancelAndDeclineOtherOffers(offerId, currentUserId);
         updateOfferStatus(offerId, 3, currentUserId); // 3 = CANCELLED
     }
 
@@ -301,7 +301,7 @@ public class OfferService {
      */
     @Transactional
     public OfferResponse acceptOffer(Integer offerId, Integer currentUserId) {
-        this.cancelOffer(offerId, currentUserId);
+        this.cancelAndDeclineOtherOffers(offerId, currentUserId);
         return updateOfferStatus(offerId, 1, currentUserId); // 1 = ACCEPTED
     }
 
@@ -310,7 +310,7 @@ public class OfferService {
      */
     @Transactional
     public OfferResponse declineOffer(Integer offerId, Integer currentUserId) {
-        this.cancelOffer(offerId, currentUserId);
+        this.cancelAndDeclineOtherOffers(offerId, currentUserId);
         return updateOfferStatus(offerId, 2, currentUserId); // 2 = DECLINED
     }
 
