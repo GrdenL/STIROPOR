@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR NOT NULL,
   description VARCHAR,
   avatar_url VARCHAR,
-  latitude NUMERIC NOT NULL,
-  longitude NUMERIC NOT NULL,
+  latitude NUMERIC,
+  longitude NUMERIC,
   created_at DATE NOT NULL,
   town_id INT NOT NULL DEFAULT 1 REFERENCES town(town_id)
 );

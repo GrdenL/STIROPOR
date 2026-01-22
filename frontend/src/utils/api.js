@@ -54,6 +54,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const shouldRetry = (err) => {
+  if (!err) return false;
+  if (!err.response) return true;
+  const status = err.response.status;
+  return status >= 500;
+};
+
+const withRetry = async (fn, { retries = 8, delayMs = 500 } = {}) => {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (!shouldRetry(err) || attempt >= retries) {
+        throw err;
+      }
+      const backoff = delayMs * Math.pow(1.5, attempt);
+      await sleep(backoff);
+      attempt += 1;
+    }
+  }
+};
+
 export const getCurrentUser = async () => {
   try {
     const res = await api.get("/me", { withCredentials: true });
@@ -101,7 +126,7 @@ export const getCurrentUser = async () => {
 
 export const getAllGames = async () => {
   try {
-    const res = await api.get("/games/all")
+    const res = await withRetry(() => api.get("/games/all"));
     return res.data;
   } catch (err) {
     console.error("Gettting games failed", err);
@@ -303,9 +328,11 @@ export const updateProfile = async (userData) => {
 
 export const login = async (email, password) => {
   try {
-    const res = await api.post("/login", null, {
-      params: { email, password }
-    })
+    const res = await withRetry(() =>
+      api.post("/login", null, {
+        params: { email, password }
+      })
+    );
     return res;
   } catch (err) {
     console.error("Login failed::", err);
@@ -315,9 +342,11 @@ export const login = async (email, password) => {
 
 export const register = async (email, username, password) => {
   try {
-    const res = await api.post("/register", null, {
-      params: { email, username, password }
-    })
+    const res = await withRetry(() =>
+      api.post("/register", null, {
+        params: { email, username, password }
+      })
+    );
     return res;
   } catch (err) {
     console.error("Login failed::", err);
