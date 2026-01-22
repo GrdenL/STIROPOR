@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import "../index.css";
 import {googleAuthUrl, login} from "../utils/api";
 import logo from "../assets/logo.png";
