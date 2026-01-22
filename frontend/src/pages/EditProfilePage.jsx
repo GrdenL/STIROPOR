@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "../utils/api.js";
@@ -20,15 +20,17 @@ const EditProfilePage = () => {
   const { user, setUser } = useAuth();
   const [username, setUsername] = useState(user?.username || "Luka Hacek");
   const [bio, setBio] = useState(
-    user?.description || "Board game collector & trader"
+    user?.description || "Board game collector & trader",
   );
-  const [location, setLocation] = useState("Zagreb, Croatia");
+  const [location, setLocation] = useState(null);
   const [locationQuery, setLocationQuery] = useState("Zagreb, Croatia");
   const [locationResults, setLocationResults] = useState([]);
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
+
+  const locationTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (user?.username) setUsername(user.username);
@@ -40,6 +42,7 @@ const EditProfilePage = () => {
       (user?.town?.townName
         ? `${user.town.townName}${user?.town?.country?.countryName ? `, ${user.town.country.countryName}` : ""}`
         : null);
+    console.log(user, nextLocation);
     if (nextLocation) {
       setLocation(nextLocation);
       setLocationQuery(nextLocation);
@@ -59,28 +62,46 @@ const EditProfilePage = () => {
 
   //Reccomend Location
   const searchLocation = async (query) => {
-    if (query.length < 3) {
+    if (!query || query.length < 3) {
       setLocationResults([]);
       return;
     }
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        query
-      )}`
-    );
+    try {
+      const res = await fetch(
+        "https://nominatim.openstreetmap.org/search?" +
+          new URLSearchParams({
+            q: query,
+            format: "json",
+            addressdetails: "1",
+            limit: "5",
+          }),
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Playtrade/1.0 (leon.grden@gmail.com)",
+          },
+        },
+      );
 
-    const data = await res.json();
+      if (!res.ok) {
+        throw new Error(`Nominatim error: ${res.status}`);
+      }
 
-    setLocationResults(
-      data.map((item) => ({
+      const data = await res.json();
+
+      const results = data.map((item) => ({
         label: item.display_name,
-        lat: item.lat,
-        lon: item.lon,
-      }))
-    );
-  };
+        lat: Number(item.lat),
+        lon: Number(item.lon),
+      }));
 
+      setLocationResults(results);
+    } catch (err) {
+      console.error("Location search failed:", err);
+      setLocationResults([]);
+    }
+  };
 
   const initials = useMemo(() => getInitials(username), [username]);
 
@@ -106,7 +127,7 @@ const EditProfilePage = () => {
 
     const safeName = `avatar-${user?.userId || "user"}-${Date.now()}-${file.name.replace(
       /[^a-zA-Z0-9._-]/g,
-      "_"
+      "_",
     )}`;
     const uploadUrl = `${blobBaseUrl}/${safeName}?${blobSas}`;
 
@@ -146,9 +167,10 @@ const EditProfilePage = () => {
       const payload = {
         username,
         description: bio,
-        location,
         avatarUrl: nextAvatarUrl || null,
+        location: location?.label ?? locationQuery,
       };
+      console.log(payload);
       const updatedUser = await updateProfile(payload);
       if (setUser) {
         setUser(updatedUser);
@@ -177,8 +199,12 @@ const EditProfilePage = () => {
 
       <section className="bg-vintage-brown text-vintage-cream pt-32 pb-28">
         <div className="max-w-5xl mx-auto text-center px-4 translate-y-8">
-          <h1 className="text-4xl font-playfair font-bold mb-4">Edit Profile</h1>
-          <p className="text-base opacity-80">Update your profile information</p>
+          <h1 className="text-4xl font-playfair font-bold mb-4">
+            Edit Profile
+          </h1>
+          <p className="text-base opacity-80">
+            Update your profile information
+          </p>
         </div>
       </section>
 
@@ -270,32 +296,43 @@ const EditProfilePage = () => {
               <label className="block text-sm font-medium mb-2">Location</label>
               <input
                 value={locationQuery}
+                onBlur={() => {
+                  setTimeout(() => setLocationResults([]), 150);
+                }}
                 onChange={(e) => {
-                  setLocationQuery(e.target.value);
-                  setLocation(e.target.value);
-                  searchLocation(e.target.value);
+                  const value = e.target.value;
+                  setLocationQuery(value);
+                  setLocation(value);
+
+                  if (locationTimeoutRef.current) {
+                    clearTimeout(locationTimeoutRef.current);
+                  }
+
+                  locationTimeoutRef.current = setTimeout(() => {
+                    searchLocation(value);
+                  }, 400);
                 }}
                 type="text"
                 className="w-full border rounded-xl px-4 py-3"
                 placeholder="Start typing your city..."
               />
               {locationResults.length > 0 && (
-                  <ul className="border rounded-xl mt-2 bg-white max-h-48 overflow-y-auto">
-                    {locationResults.map((loc, i) => (
-                      <li
-                        key={i}
-                        onClick={() => {
-                          setLocationQuery(loc.label);
-                          setLocation(loc.label);
-                          setLocationResults([]);
-                        }}
-                        className="px-4 py-2 hover:bg-vintage-cream cursor-pointer text-sm"
-                      >
-                        {loc.label}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ul className="border rounded-xl mt-2 bg-white max-h-48 overflow-y-auto">
+                  {locationResults.map((loc, i) => (
+                    <li
+                      key={i}
+                      onClick={() => {
+                        setLocationQuery(loc.label);
+                        setLocation(loc);
+                        setLocationResults([]);
+                      }}
+                      className="px-4 py-2 hover:bg-vintage-cream cursor-pointer text-sm"
+                    >
+                      {loc.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <p className="text-xs text-vintage-brown/60 mt-2">
                 Your location helps match you with nearby traders
               </p>

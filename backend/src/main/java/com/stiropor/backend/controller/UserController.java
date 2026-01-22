@@ -122,12 +122,16 @@ public class UserController {
             }
             if (updates.containsKey("location")) {
                 String locationString = (String) updates.get("location");
-                NominatimService.LocationResponse result = nominatimService.geocode(locationString);
-                double lat = 0.0;
-                double lon = 0.0;
-                if(result != null) {
-                    lat = Double.parseDouble(result.lat);
-                    lon = Double.parseDouble(result.lon);
+
+                NominatimService.LocationResponse result =
+                        nominatimService.geocode(locationString);
+
+                if (result != null) {
+                    user.setLatitude(Double.parseDouble(result.lat));
+                    user.setLongitude(Double.parseDouble(result.lon));
+                } else {
+                    user.setLatitude(null);
+                    user.setLongitude(null);
                 }
             }
             if (updates.containsKey("avatarUrl")) {
