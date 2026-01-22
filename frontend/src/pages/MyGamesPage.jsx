@@ -299,6 +299,7 @@ const MyGamesPage = () => {
                         {game.condition}
                       </span>
                       <div className="flex gap-3">
+                        {!isInactive && (
                         <button
                           type="button"
                           onClick={(e) => handleDelete(game.listingId, e)}
@@ -309,6 +310,7 @@ const MyGamesPage = () => {
                             ? "Deleting..."
                             : "Delete"}
                         </button>
+                            )}
                       </div>
                     </div>
                   </div>
