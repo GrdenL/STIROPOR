@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import io.jsonwebtoken.JwtException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/listings")
@@ -120,66 +122,51 @@ public class ListingController {
     public ResponseEntity<Listing> deleteListingById(@PathVariable Integer id) {
         Listing listing = listingService.findByListingId(id);
 
-        List<Offer> offers = offerService.findByListingId(id);
-        List<OfferItem> offerItems = offerItemService.findByListingId(id);
-        if (offers == null || offers.isEmpty() || offerItems == null || offerItems.isEmpty()) {
-            listingService.deleteByListingId(id);
-            listing = new Listing();
+        Set<Offer> offers = new HashSet<>();
+        List<Offer> offersTargetListing = offerService.findByListingId(listing.getListingId());
+        List<OfferItem> offerItemsListing = offerItemService.findByListingId(listing.getListingId());
+        if (offersTargetListing != null) { offers.addAll(offersTargetListing); }
+        if ( offerItemsListing != null) {
+            for  (OfferItem offerItem : offerItemsListing) {
+                offers.add(offerItem.getOffer());
+            }
         }
-        else{
-           User sender = listing.getUser();
-           for (Offer offer : offers) {
-                if(offer.getFrom_user().getUserId().equals(sender.getUserId())){
-                    offer.setOffer_status(3);
-                    notificationService.createAndSendNotification(
-                            offer.getTo_user(),
-                            sender.getEmail(),
-                            "OFFER_CANCELLED",
-                            offer.getOfferId(),
-                            "An offer for you has been cancelled!",
-                            "User " + sender.getUsername() + " has cancelled their offer!"
-                    );
-                }else{
-                    offer.setOffer_status(2);
-                    notificationService.createAndSendNotification(
-                            offer.getFrom_user(),
-                            sender.getEmail(),
-                            "OFFER_DECLINED",
-                            offer.getOfferId(),
-                            "An offer for you has been declined!",
-                            "User " + sender.getUsername() + " has declined your offer!"
-                    );
+        if (offers.isEmpty()) {
+            listingService.delete(listing);
+            listing = new  Listing();
+        }else{
+            for (Offer offer : offers) {
+                if(offer.getOffer_status() == 0){
+                    User sender = userService.findByUserId(listing.getUser().getUserId());
+                    if(offer.getFrom_user().getUserId().equals(listing.getUser().getUserId())){
+                        offer.setOffer_status(3);
+                        notificationService.createAndSendNotification(
+                                offer.getTo_user(),
+                                sender.getEmail(),
+                                "OFFER_CANCELLED",
+                                offer.getOfferId(),
+                                "An offer for you has been cancelled!",
+                                "User " + sender.getUsername() + " has cancelled their offer!"
+                        );
+                    }else{
+                        offer.setOffer_status(2);
+                        notificationService.createAndSendNotification(
+                                offer.getFrom_user(),
+                                sender.getEmail(),
+                                "OFFER_DECLINED",
+                                offer.getOfferId(),
+                                "An offer for you has been declined!",
+                                "User " + sender.getUsername() + " has declined your offer!"
+                        );
+                        offerService.save(offer);
+                    }
                 }
-               offerService.save(offer);
-           }
-           for(OfferItem offerItem : offerItems){
-               Offer offer = offerItem.getOffer();
-               if(offer.getFrom_user().getUserId().equals(sender.getUserId())){
-                   offer.setOffer_status(3);
-                   notificationService.createAndSendNotification(
-                           offer.getTo_user(),
-                           sender.getEmail(),
-                           "OFFER_CANCELLED",
-                           offer.getOfferId(),
-                           "An offer for you has been cancelled!",
-                           "User " + sender.getUsername() + " has cancelled their offer!"
-                   );
-               }else{
-                   offer.setOffer_status(2);
-                   notificationService.createAndSendNotification(
-                           offer.getFrom_user(),
-                           sender.getEmail(),
-                           "OFFER_DECLINED",
-                           offer.getOfferId(),
-                           "An offer for you has been declined!",
-                           "User " + sender.getUsername() + " has declined your offer!"
-                   );
-               }
-               offerService.save(offer);
-               }
-          listing.setIsActive(false);
-          listingService.save(listing);
+            }
+            listing.setIsActive(false);
+            listingService.save(listing);
         }
+
+
         return ResponseEntity.ok(listing);
     }
 
