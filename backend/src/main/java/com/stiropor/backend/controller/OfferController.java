@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -81,12 +83,14 @@ public class OfferController {
                 games = games.substring(0, games.length() - 2);
             }
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            String timestamp = LocalDateTime.now().format(formatter);
             notificationService.createAndSendNotification(
                     recipient,
                     sender.getEmail(),
                     "OFFER_RECEIVED",
                     offer.getOfferId(),
-                    "New offer for your game!",
+                    "[" + sender.getEmail() + ", "+ timestamp +"] New offer for your game! ",
                     "User " + sender.getUsername() + " is offering you: "+games+"\nfor your: "
                             + listingService.findByListingId(request.getRequestedListingId()).getGame().getGameName()
                             + "\n\n" + frontendURL + "/my-trades"
@@ -264,13 +268,14 @@ public class OfferController {
                         .body("User not authenticated");
             }
             User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getToUserId());
-
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            String timestamp = LocalDateTime.now().format(formatter);
             notificationService.createAndSendNotification(
                     recipient,
                     sender.getEmail(),
                     "OFFER_CANCELLED",
                     offerId,
-                    "An offer for you has been cancelled!",
+                    "[" + timestamp + "] An offer for you has been cancelled!",
                     "User " + sender.getUsername() + " has cancelled their offer!"
             );
 
@@ -309,13 +314,14 @@ public class OfferController {
                         .body("User not authenticated");
             }
             User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getFromUserId());
-
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            String timestamp = LocalDateTime.now().format(formatter);
             notificationService.createAndSendNotification(
                     recipient,
                     sender.getEmail(),
                     "OFFER_ACCEPTED",
                     offerId,
-                    "Your offer has been accepted!",
+                    "[" + timestamp + "] Your offer has been accepted!",
                     "User " + sender.getUsername() + " has accepted your offer!"
             );
 
@@ -353,13 +359,14 @@ public class OfferController {
                         .body("User not authenticated");
             }
             User recipient = userService.findByUserId(offerService.getOfferById(offerId, currentUserId).getFromUserId());
-
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+            String timestamp = LocalDateTime.now().format(formatter);
             notificationService.createAndSendNotification(
                     recipient,
                     sender.getEmail(),
                     "OFFER_DECLINED",
                     offerId,
-                    "Your offer has been declined!",
+                    "[ " + timestamp + "] Your offer has been declined!",
                     "User " + sender.getUsername() + " has declined your offer!"
             );
 

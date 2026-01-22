@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
+    @Async
     public void sendEmailBetweenUsers(String fromEmail, String toEmail, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
@@ -46,6 +48,7 @@ public class NotificationService {
             logger.warn("Failed to send notification email from {} to {}", fromEmail, toEmail, e);
         }
     }
+    @Async
     public void sendWishListEmail(String toEmail, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);

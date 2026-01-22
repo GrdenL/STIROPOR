@@ -10,10 +10,13 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import io.jsonwebtoken.JwtException;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -95,9 +98,11 @@ public class ListingController {
         if (!wishListUsers.isEmpty()) {
             for (User wishUser : wishListUsers){
                 if (!wishUser.getUserId().equals(user.getUserId())){
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+                    String timestamp = LocalDateTime.now().format(formatter);
                     notificationService.sendWishListEmail(
                             wishUser.getEmail(),
-                            "The game you wishlisted is available!",
+                            "[" + formatter + "] The game you wishlisted is available!",
                             "The user " + user.getUsername() + " has listed your wishlisted game: " +
                                     game.getGameName() + "!\n\n" + frontendURL + "/games/" + game.getGameId()
                     );
