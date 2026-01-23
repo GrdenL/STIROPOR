@@ -95,6 +95,33 @@ const MyTradesPage = () => {
     }
   };
 
+  const reverseGeocode = async (lat, lon) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?` +
+          new URLSearchParams({
+            lat: Number(lat),
+            lon: Number(lon),
+            format: "jsonv2",
+          }),
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Playtrade/1.0 (leon.grden@gmail.com)",
+          },
+        },
+      );
+
+      if (!res.ok) throw new Error("Reverse geocode failed");
+      const data = await res.json();
+
+      return `${data.address.city_district}, ${data.address.town}, ${data.address.country}`;
+    } catch (err) {
+      console.error("Reverse geocoding error:", err);
+      return null;
+    }
+  };
+
   const fetchTrades = async () => {
     setLoading(true);
     setError(null);
@@ -172,12 +199,11 @@ const MyTradesPage = () => {
               .toLowerCase()
               .replace(/\s+/g, ".");
             const partnerAvatar = partnerUser?.avatarUrl;
-            const partnerTown = partnerUser?.town?.townName;
-            const partnerCountry = partnerUser?.town?.country?.countryName;
-            const partnerLocation =
-              partnerUser?.location ||
-              [partnerTown, partnerCountry].filter(Boolean).join(", ") ||
-              "Unknown";
+
+            const partnerLocation = reverseGeocode(
+              partnerUser.latitude,
+              partnerUser.longitude,
+            );
 
             return {
               id: offer.id || offer.offerId,

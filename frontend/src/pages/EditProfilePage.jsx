@@ -40,18 +40,13 @@ const EditProfilePage = () => {
 
     // Define the async logic inside the effect
     const initializeLocation = async () => {
-      let nextLocation;
       const derivedLocation = await reverseGeocode(
         user.latitude,
         user.longitude,
       );
       if (derivedLocation) {
-        nextLocation = derivedLocation.split(",").splice(3).join(",");
-      }
-
-      if (nextLocation) {
-        setLocation(nextLocation);
-        setLocationQuery(nextLocation);
+        setLocation(derivedLocation);
+        setLocationQuery(derivedLocation);
       }
     };
 
@@ -134,9 +129,7 @@ const EditProfilePage = () => {
       if (!res.ok) throw new Error("Reverse geocode failed");
       const data = await res.json();
 
-      // data.display_name is the full address
-      // data.address contains parts like city, town, village, country
-      return data.display_name;
+      return `${data.address.city_district}, ${data.address.town}, ${data.address.country}`;
     } catch (err) {
       console.error("Reverse geocoding error:", err);
       return null;
