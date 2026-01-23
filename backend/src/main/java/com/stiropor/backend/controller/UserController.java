@@ -182,7 +182,9 @@ public class UserController {
 
             Town town = getOrCreateUnknownTown();
 
-            User savedUser = userService.save(new User(email, bCryptService.hashPassword(password), username, null, null, town));
+            User savedUser = userService.save(
+                    new User(email, bCryptService.hashPassword(password), username, 0.0, 0.0, town)
+            );
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
 
         } catch (Exception e) {
