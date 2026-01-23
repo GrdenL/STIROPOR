@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "../utils/api.js";
+import MapComponent from "../components/MapComponent";
 
 const blobBaseUrl = import.meta.env.VITE_BLOB_BASE_URL;
 const blobSas = import.meta.env.VITE_BLOB_SAS;
@@ -368,6 +369,12 @@ const EditProfilePage = () => {
               <p className="text-xs text-vintage-brown/60 mt-2">
                 Your location helps match you with nearby traders
               </p>
+            </div>
+            <div className="mb-5">
+              <MapComponent
+                latitude={user.latitude}
+                longitude={user.longitude}
+              />
             </div>
 
             <div className="flex gap-3">
