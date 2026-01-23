@@ -4,6 +4,8 @@ package com.stiropor.backend.model;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -11,10 +13,10 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userid", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name = "googleid", unique = true)
+    @Column(name = "google_id", unique = true)
     private String googleId;
 
     @Column(name = "email", unique = true, nullable = false)
@@ -32,6 +34,9 @@ public class User {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Column(name = "latitude", nullable = false)
     private Double latitude;
 
@@ -41,15 +46,32 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
 
-    @Column(name = "townid", nullable = false)
-    private Integer townId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "town_id", nullable = false)
+    private Town town;
+
+    @ManyToMany
+    @JoinTable(
+	name = "whishes_for",
+	joinColumns = @JoinColumn(name = "user_id"),
+	inverseJoinColumns = @JoinColumn(name = "game_id")
+    )
+    private List<Game> wishlist = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+	name = "is_intrested",
+	joinColumns = @JoinColumn(name = "user_id"),
+	inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> interestedGenres = new ArrayList<>();
 
     public User() {
 
     }
 
     public User(String email, String passwordHash, String username, Double latitude,
-                Double longitude) {
+                Double longitude, Town town) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.username = username;
@@ -57,11 +79,11 @@ public class User {
         this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.townId = 1;
+        this.town = town;
     }
 
     public User(String googleId, String email, String username,
-                Double latitude, Double longitude, Integer townId) {
+                Double latitude, Double longitude) {
         this.googleId = googleId;
         this.email = email;
         this.username = username;
@@ -69,7 +91,7 @@ public class User {
         this.description = "";
         this.latitude = latitude;
         this.longitude = longitude;
-        this.townId = 1;
+        this.town = null;
     }
 
 
@@ -134,6 +156,14 @@ public class User {
         this.description = description;
     }
 
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public Double getLatitude() {
         return latitude;
     }
@@ -158,11 +188,31 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public Integer getTownId() {
-        return townId;
+    public Town getTown() {
+        return town;
     }
 
-    public void setTownId(Integer townId) {
-        this.townId = townId;
+    public void setTown(Town town) {
+        this.town = town;
+    }
+
+    public Integer getId() { return userId; }
+
+
+    public List<Game> getWishlist() {
+	return wishlist;
+    }
+
+    public void setWishlist(List<Game> wishlist) {
+	this.wishlist = wishlist;
+    }
+
+    public List<Genre> getInterestedGenres() {
+	return interestedGenres;
+    }
+
+    public void setInterestedGenres(List<Genre> interestedGenres) {
+	this.interestedGenres = interestedGenres;
     }
 }
+

@@ -1,11 +1,14 @@
 package com.stiropor.backend.controller;
 
+import com.stiropor.backend.model.Country;
+import com.stiropor.backend.model.Town;
 import com.stiropor.backend.model.User;
-import com.stiropor.backend.service.UserService;
+import com.stiropor.backend.service.*;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,37 +16,43 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import io.jsonwebtoken.JwtException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 public class UserController {
 
     private final UserService userService;
+    private final TownService townService;
+    private final CountryService countryService;
+    private final JwtUtil jwtUtil;
+    private final NominatimService nominatimService;
+    private final BCryptService bCryptService;
+    @Value("${server.servlet.session.cookie.secure:true}")
+    private boolean cookieSecure;
+    @Value("${server.servlet.session.cookie.same-site:None}")
+    private String cookieSameSite;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, TownService townService, CountryService countryService, JwtUtil jwtUtil, NominatimService nominatimService, BCryptService bCryptService) {
         this.userService = userService;
+        this.townService = townService;
+        this.countryService = countryService;
+        this.jwtUtil = jwtUtil;
+        this.nominatimService = nominatimService;
+        this.bCryptService = bCryptService;
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         try {
-            String jwt = null;
-            String email = null;
-            String username = null;
-
-            if (request.getHeader("Authorization") != null && request.getHeader("Authorization").length() > 7) {
-                jwt = request.getHeader("Authorization").substring(7);
+            User user = resolveUserFromRequest(request);
+            if (user == null) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }
-
-            if (jwt != null) {
-                JwtUtil jwtUtil = new JwtUtil();
-                email = jwtUtil.extractUsername(jwt);
-            }
-            username = userService.findByEmail(email).getUsername();
-
-            return ResponseEntity.ok(username);
+            return ResponseEntity.ok(user);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -51,7 +60,7 @@ public class UserController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAll();
         return ResponseEntity.ok(users);
@@ -61,11 +70,20 @@ public class UserController {
     @PostMapping("/login")
     @Deprecated
     public ResponseEntity<?> getByEmailAndPassword(@RequestParam String email,
-                                                   @RequestParam String password_hash) {
+                                                   @RequestParam String password,
+                                                   HttpServletResponse response) {
         try {
             User user = userService.findByEmail(email);
-            if (user != null && password_hash.equals(user.getPasswordHash())) {
-                return ResponseEntity.ok(user);
+            if (user != null && bCryptService.checkPassword(password, user.getPasswordHash())) {
+                String token =  jwtUtil.generateToken(user.getEmail());
+                Cookie cookie = new Cookie("jwt", token);
+                cookie.setMaxAge(60 * 60 * 24);
+                cookie.setPath("/");
+                cookie.setHttpOnly(true);
+                cookie.setSecure(cookieSecure);
+                cookie.setAttribute("SameSite", cookieSameSite);
+                response.addCookie(cookie);
+                return ResponseEntity.ok(Map.of("user", user, "token", token));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid credentials");
@@ -90,15 +108,53 @@ public class UserController {
         }
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody User user) {
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUser(@RequestBody Map<String, Object> updates, HttpServletRequest request) {
         try {
-            // Add validation to ensure users can only update their own data
-            User updatedUser = userService.save(user);
-            return ResponseEntity.ok(updatedUser);
+            User user = resolveUserFromRequest(request);
+            if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+            if (updates.containsKey("username")) {
+                user.setUsername((String) updates.get("username"));
+            }
+            if (updates.containsKey("description")) {
+                user.setDescription((String) updates.get("description"));
+            }
+            if (updates.containsKey("location")) {
+                String locationString = (String) updates.get("location");
+
+                NominatimService.LocationResponse result =
+                        nominatimService.geocode(locationString);
+
+                if (result != null) {
+                    user.setLatitude(Double.parseDouble(result.lat));
+                    user.setLongitude(Double.parseDouble(result.lon));
+                } else {
+                    user.setLatitude(null);
+                    user.setLongitude(null);
+                }
+            }
+            if (updates.containsKey("avatarUrl")) {
+                Object value = updates.get("avatarUrl");
+                String avatarUrl = value instanceof String ? ((String) value).trim() : null;
+                if (avatarUrl != null && avatarUrl.isEmpty()) {
+                    avatarUrl = null;
+                }
+                user.setAvatarUrl(avatarUrl);
+            } else if (updates.containsKey("avatar")) {
+                Object value = updates.get("avatar");
+                String avatarUrl = value instanceof String ? ((String) value).trim() : null;
+                if (avatarUrl != null && avatarUrl.isEmpty()) {
+                    avatarUrl = null;
+                }
+                user.setAvatarUrl(avatarUrl);
+            }
+
+            User savedUser = userService.save(user);
+            return ResponseEntity.ok(savedUser);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating user");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Update failed: " + e.getMessage());
         }
     }
 
@@ -116,14 +172,19 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestParam String email, @RequestParam String username, @RequestParam String password) {
         try {
-            if (userService.findByEmail(user.getEmail()) != null) {
+            if (userService.findByEmail(email) != null) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("User with this email already exists");
             }
 
-            User savedUser = userService.save(user);
+
+            Town town = getOrCreateUnknownTown();
+
+            User savedUser = userService.save(
+                    new User(email, bCryptService.hashPassword(password), username, 0.0, 0.0, town)
+            );
             return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
 
         } catch (Exception e) {
@@ -142,13 +203,10 @@ public class UserController {
                 request.getSession(false).invalidate();
             }
 
-            Cookie cookie = new Cookie("jwt", null);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(60 * 60 * 10);
-            cookie.setAttribute("SameSite", "None");
-            response.addCookie(cookie);
+            clearCookie(request, response, "jwt");
+            clearCookie(request, response, "JSESSIONID");
+            clearCookie(request, response, "ARRAffinity");
+            clearCookie(request, response, "ARRAffinitySameSite");
 
             return ResponseEntity.ok("Logged out successfully");
         } catch (Exception e) {
@@ -156,4 +214,118 @@ public class UserController {
                     .body("Logout failed");
         }
     }
+
+    private User resolveUserFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+            User user = resolveUserFromToken(authHeader.substring(7));
+            if (user != null) {
+                return user;
+            }
+        }
+
+        if (request.getCookies() == null) {
+            return null;
+        }
+
+        for (Cookie cookie : request.getCookies()) {
+            if (!"jwt".equals(cookie.getName())) {
+                continue;
+            }
+            User user = resolveUserFromToken(cookie.getValue());
+            if (user != null) {
+                return user;
+            }
+        }
+
+        return null;
+    }
+
+    private User resolveUserFromToken(String jwt) {
+        String subject = safelyExtractSubject(jwt);
+        if (subject == null) {
+            return null;
+        }
+
+        User user = resolveUserBySubject(subject);
+        return user;
+    }
+
+    private String safelyExtractSubject(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return null;
+        }
+        try {
+            return jwtUtil.extractUsername(jwt);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private User resolveUserBySubject(String subject) {
+        User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByEmailIgnoreCase(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByGoogleId(subject);
+        if (user != null) {
+            return user;
+        }
+
+        Integer userId = parseUserId(subject);
+        if (userId != null) {
+            return userService.findByUserId(userId);
+        }
+
+        return null;
+    }
+
+    private Town getOrCreateUnknownTown() {
+        Town town = townService.findByName("Unknown");
+        if (town != null) {
+            return town;
+        }
+
+        Country country = countryService.findById("Unknown");
+        if (country == null) {
+            country = new Country("Unknown");
+            countryService.save(country);
+        }
+
+        return townService.save(new Town("Unknown", country));
+    }
+
+    private Integer parseUserId(String subject) {
+        try {
+            return Integer.valueOf(subject);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private void clearCookie(HttpServletRequest request, HttpServletResponse response, String name) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setSecure(cookieSecure);
+        cookie.setAttribute("SameSite", cookieSameSite);
+        response.addCookie(cookie);
+
+        Cookie domainCookie = new Cookie(name, "");
+        domainCookie.setHttpOnly(true);
+        domainCookie.setPath("/");
+        domainCookie.setMaxAge(0);
+        domainCookie.setSecure(cookieSecure);
+        domainCookie.setAttribute("SameSite", cookieSameSite);
+        domainCookie.setDomain(request.getServerName());
+        response.addCookie(domainCookie);
+    }
 }
+

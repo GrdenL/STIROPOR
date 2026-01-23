@@ -3,3 +3,8 @@
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+
+# local-only
+/docker-compose.override.yml
+/backend/db/prod_schema.sql
+/backend/db/*.Zone.Identifier

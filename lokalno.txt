@@ -1,0 +1,174 @@
+## preduvjet
+- Docker radi bez sudo:
+  docker ps
+
+ako ne dela, onda sudo ispred naredbe ili popravi root
+
+---
+
+# 1) pokretanje db + backend + frontend
+
+docker compose up -d --build
+
+Provjera:
+docker compose ps
+
+
+za logove treba biti u pravom direktoriju! tam di je compose.yml
+Logovi:
+docker compose logs -f db
+docker compose logs -f backend
+docker compose logs -f frontend
+
+---
+
+# 2) gašenje
+docker compose down
+
+---
+
+# 3) "hard reset" (briše bazu i sve podatke!)
+docker compose down -v
+
+Nakon toga opet:
+docker compose up -d --build
+
+---
+
+# 4) rebuild nakon promjena (ako se mijenja Dockerfile )
+Rebuild sve:
+docker compose up -d --build
+
+Rebuild samo backend:
+docker compose up -d --build backend
+
+Rebuild samo frontend:
+docker compose up -d --build frontend
+
+---
+
+# 5) nakon promjene koda 
+
+### frontend (Vite dev server)
+- Promjene se vide AUTOMATSKI (hot reload).
+- Ne treba restart.
+
+### backend (Spring Boot / Gradle bootRun)
+
+Restart backend:
+docker compose restart backend
+
+Ako promjene nisu povučene:
+docker compose up -d --build backend
+
+---
+
+# 6) provjera baze
+
+### DB logovi:
+docker logs -f stiropor-db
+
+### ulaz u psql:
+docker exec -it stiropor-db psql -U app -d appdb
+
+u psql:
+\dt
+SELECT * FROM "Country";
+SELECT * FROM "Town";
+\q
+
+### test:
+docker exec -it stiropor-db psql -U app -d appdb -c "SELECT now();"
+
+---
+
+# 7) init SQL (01_init.sql) – kako natjerati da se opet izvrši
+Init SQL se izvrši samo na PRAZNOM volume-u.
+Zato:
+
+docker compose down -v
+docker compose up -d --build
+
+---
+
+# 8) debug / troubleshooting
+
+### prikaz svih containera:
+docker ps -a
+
+
+### Zadnjih 200 linija loga:
+docker compose logs --tail=200 backend
+docker compose logs --tail=200 frontend
+docker compose logs --tail=200 db
+
+za logove treba biti u pravom direktoriju!
+npr.
+leon@GODZILLA:~/progi$ docker compose logs -f backend
+no configuration file provided: not found
+leon@GODZILLA:~/progi$ cd STIROPOR
+leon@GODZILLA:~/progi/STIROPOR$ ls
+README.md  backend  docker-compose.yml  fc.json  frontend
+leon@GODZILLA:~/progi/STIROPOR$ docker compose logs -f backend
+stiropor-backend  | Welcome to Gradle 8.14.3!
+stiropor-backend  | 
+stiropor-backend  | Here are the highlights of this release:
+stiropor-backend  |  - Java 24 support
+stiropor-backend  |  - GraalVM Native Image toolchain selection
+stiropor-backend  |  - Enhancements to test reporting
+stiropor-backend  |  - Build Authoring improvements
+
+
+
+### ući u container (shell):
+docker exec -it stiropor-backend bash
+docker exec -it stiropor-frontend bash
+docker exec -it stiropor-db bash
+
+### clean Docker (briše puno toga):
+docker system prune -af --volumes
+
+---
+
+# 9)  workflow (real life dawg)
+1) digni:
+   docker compose up -d --build
+
+2) piši:
+   - frontend: auto reload
+   - backend: ako nema devtools onda: docker compose restart backend
+
+3) kad nešto zablokira:
+   docker compose logs -f backend
+
+4) reset baze:
+   docker compose down -v
+   docker compose up -d --build
+
+
+ovo briše bazu i sve podatke:
+docker compose down -v --remove-orphans
+
+ovo sve digne opet:
+docker compose up -d
+
+neke DB naredbe:
+za ući u db:
+docker exec -it stiropor-db psql -U app -d appdb
+
+tablice:
+\dt+
+
+\d users
+
+SELECT now();
+SELECT COUNT(*) FROM users;
+SELECT * FROM users LIMIT 10;
+
+
+izlaz:
+\q
+
+
+
+

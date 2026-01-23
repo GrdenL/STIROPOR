@@ -1,6 +1,5 @@
 package com.stiropor.backend.security;
 
-import com.stiropor.backend.repository.UserRepository;
 import com.stiropor.backend.service.UserService;
 import com.stiropor.backend.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -8,13 +7,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import io.jsonwebtoken.JwtException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -39,31 +38,88 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = null;
         String email = null;
 
-        if (request.getHeader("Authorization") != null && request.getHeader("Authorization").length() > 7) {
-            jwt = request.getHeader("Authorization").substring(7);
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
+            jwt = authHeader.substring(7);
+            email = resolveEmailFromToken(jwt);
         }
 
-        if (jwt != null) {
-            email = jwtUtil.extractUsername(jwt);
+        if (email == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    email = resolveEmailFromToken(jwt);
+                    if (email != null) {
+                        break;
+                    }
+                }
+            }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (isValidUser(email)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                new User(email, "", Collections.emptyList()),
-                                null,
-                                Collections.emptyList()
-                        );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            new User(email, "", Collections.emptyList()),
+                            null,
+                            Collections.emptyList()
+                    );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private Boolean isValidUser(String email) {
-        return userService.findByEmail(email) != null;
+    private String resolveEmailFromToken(String jwt) {
+        String subject = safelyExtractSubject(jwt);
+        if (subject == null) {
+            return null;
+        }
+
+        com.stiropor.backend.model.User user = resolveUserBySubject(subject);
+        return user != null ? user.getEmail() : null;
+    }
+
+    private String safelyExtractSubject(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return null;
+        }
+        try {
+            return jwtUtil.extractUsername(jwt);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private com.stiropor.backend.model.User resolveUserBySubject(String subject) {
+        com.stiropor.backend.model.User user = userService.findByEmail(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByEmailIgnoreCase(subject);
+        if (user != null) {
+            return user;
+        }
+
+        user = userService.findByGoogleId(subject);
+        if (user != null) {
+            return user;
+        }
+
+        Integer userId = parseUserId(subject);
+        if (userId != null) {
+            return userService.findByUserId(userId);
+        }
+
+        return null;
+    }
+
+    private Integer parseUserId(String subject) {
+        try {
+            return Integer.valueOf(subject);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

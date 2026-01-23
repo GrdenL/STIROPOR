@@ -1,15 +1,20 @@
 import React, { useState } from "react";
 import "../index.css";
-import { Link } from "react-router-dom";
-import { googleAuthUrl } from "../utils/api";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { login, register, googleAuthUrl } from "../utils/api";
 import logo from "../assets/logo.png";
+import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
+  const { login: setAuthUser } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    location: "",
     password: "",
     confirmPassword: "",
     acceptTerms: false,
@@ -58,25 +63,39 @@ const RegisterPage = () => {
         const payload = {
           email: formData.email,
           username: `${formData.firstName} ${formData.lastName}`.trim(),
-          passwordHash: formData.password, // backend trenutno očekuje polje passwordHash
-          description: "",
-          role: "USER",
-          townId: 1,
-          latitude: 0,
-          longitude: 0,
+          password: formData.password,
         };
 
-        const res = await register(payload);
-        if (!res.data) {
+        const res = await register(payload.email, payload.username, payload.password);
+        if (!res?.data) {
           alert("Korisnik već postoji ili registracija nije uspjela.");
           return;
         }
-        alert("Registracija uspješna! Možete se prijaviti.");
+        const loginRes = await login(payload.email, payload.password);
+        if (!loginRes?.data?.user) {
+          alert("Registracija je uspjela, ali prijava nije uspjela.");
+          return;
+        }
+        if (loginRes.data.token) {
+          sessionStorage.setItem("jwt", loginRes.data.token);
+          localStorage.setItem("jwt", loginRes.data.token);
+        }
+        setAuthUser(loginRes.data.user);
+        navigate(from, { replace: true });
       } catch (err) {
         console.error(err);
         alert("Greška pri registraciji.");
       }
     }
+  };
+
+  const handleGoogleRegister = (e) => {
+    localStorage.setItem("postLoginRedirect", from);
+
+    sessionStorage.removeItem("jwt");
+    localStorage.removeItem("jwt");
+
+    window.location.href = googleAuthUrl;
   };
 
   return (
@@ -154,28 +173,6 @@ const RegisterPage = () => {
                   className="w-full px-4 py-3 border border-[#3B2F2F]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition font-roboto"
                   placeholder="you@email.com"
                 />
-              </div>
-
-              {/* Address */}
-              <div>
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-[#3B2F2F] mb-2 font-roboto"
-                >
-                  Address *
-                </label>
-                <input
-                  id="location"
-                  type="text"
-                  required
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-[#3B2F2F]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D97706] focus:border-transparent transition font-roboto"
-                  placeholder="Number, Street, City, Country"
-                />
-                <p className="mt-1 text-xs text-[#3B2F2F]/60 font-roboto">
-                  Address is required to facilitate local swaps.
-                </p>
               </div>
 
               {/* Password */}
@@ -288,6 +285,7 @@ const RegisterPage = () => {
             <div className="space-y-3">
               <a
                 href={googleAuthUrl}
+                onClick={handleGoogleRegister}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-[#3B2F2F]/20 hover:bg-[#F9F5F0] text-[#3B2F2F] font-medium py-3 px-6 rounded-full transition font-roboto"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -317,6 +315,7 @@ const RegisterPage = () => {
               Already have an account?{" "}
               <Link
                 to="/login"
+                state={{from : location.state?.from}}
                 className="text-[#3B2F2F] hover:text-[#D97706] font-medium transition font-roboto"
               >
                 Log in Here

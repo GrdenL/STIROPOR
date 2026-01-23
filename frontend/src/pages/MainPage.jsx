@@ -1,6 +1,7 @@
 import React from "react";
 import logo from "../assets/logo.png";
 import "../index.css";
+import { Link } from "react-router-dom";
 
 const MainPage = () => {
   return (
@@ -13,7 +14,7 @@ const MainPage = () => {
           </div>
 
           <h1 className="text-2xl font-playfair font-bold mb-3">
-            Trade Board Games (DEV)
+            Trade Board Games 
           </h1>
           <p className="max-w-2xl mx-auto text-sm font-roboto leading-relaxed mb-8">
             Connect with collectors, trade games and build your ideal
@@ -22,25 +23,13 @@ const MainPage = () => {
             From Monopoly to Risk, find the games that you want to play.
           </p>
 
-          <a
-            href="#"
+          <Link
+            to="/games"
             className="inline-flex items-center bg-vintage-accent hover:bg-amber-700 text-white font-medium py-3 px-8 rounded-full transition"
           >
             Start Trading
-            <svg
-              className="ml-2 w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </a>
+          </Link>
+
         </div>
       </section>
 

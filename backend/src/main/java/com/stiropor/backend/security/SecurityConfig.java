@@ -1,6 +1,6 @@
 package com.stiropor.backend.security;
 
-import jakarta.servlet.Filter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    @Value("${server.frontend}")
+    private String frontendUrl;
 
     public SecurityConfig(OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
@@ -31,7 +33,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/register", "/login").permitAll()
+                        .requestMatchers("/error", "/error/**").permitAll()
+                        .requestMatchers("/games/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/register", "/login", "/logout").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -41,9 +45,12 @@ public class SecurityConfig {
                 )
 
                 .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
 
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler((request, response, exception) ->
+                                response.sendRedirect(frontendUrl + "/login?oauthError=true"))
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
